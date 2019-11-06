@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Callable
 
 import pandas as pd
 
@@ -32,32 +32,58 @@ class BaseRequest:
         if not isinstance(request_id, (int, type(None))):
             msg = "Request id should be int or None"
             raise RequestError(msg)
-        self.request_type: str = request_type
-        self.interaction_priority: str = interaction_priority  # Example: one of:
-        self.request_id: int = request_id  # Some random number as id
-        self.content = content
-        self.response = None
+        # Attributes
+        self._request_type: str = request_type
+        self._interaction_priority: str = interaction_priority  # Example: one of:
+        self._request_id: int = request_id  # Some random number as id
+        self._content = content
+        self._response = None
+
+    @property
+    def request_type(self):
+        return self._request_type
+
+    @property
+    def interaction_priority(self):
+        return self._interaction_priority
+
+    @property
+    def request_id(self):
+        return self._request_id
+
+    @property
+    def content(self):
+        return self._content
+
+    @property
+    def response(self):
+        return self._response
+
+    @response.setter
+    def response(self):
+        # Code to validate the response
+        pass
 
 
 class PrintRequest(BaseRequest):
-    def __init__(self, printmessage: Union[str, List[str]], request_id=None):
-        if not isinstance(printmessage, str):
-            if not isinstance(printmessage, list):
+    def __init__(self, message: Union[str, List[str]], request_id=None):
+        if not isinstance(message, str):
+            if not isinstance(message, list):
                 msg = (
                     f"Message/s to be printed should be string or list of strings"
-                    f"Message provided is of type: {type(printmessage)}"
+                    f"Message provided is of type: {type(message)}"
                 )
                 raise RequestError(msg)
-            elif not all(isinstance(x, str) for x in printmessage):
+            elif not all(isinstance(x, str) for x in message):
                 msg = (
                     f"Message/s to be printed should be string or list of strings"
                     f"Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
-        super.__init__(
+        super().__init__(
             request_type="print",
             interaction_priority="no_interaction",
-            content=print,
+            content=message,
             request_id=request_id,
         )
 
@@ -66,12 +92,18 @@ class SimplePlotRequest(BaseRequest):
     def __init__(
         self,
         data: pd.DataFrame,
-        dimension_data: pd.DataFrame = None,
+        dimensions_data: pd.DataFrame = None,
         chart_title: str = None,
-        printmessage: Union[str, List[str]] = None,
+        message: Union[str, List[str]] = None,
         request_id=None,
     ):
-        acceptable_dimensional_data_indices = ["lower_limit", "upper_limit", "maximize"]
+        acceptable_dimensions_data_indices = [
+            "lower_limit",
+            "upper_limit",
+            "maximize",  # 1 if minimized, -1 if maximized
+            "ideal",
+            "nadir",
+        ]
         if not isinstance(data, pd.DataFrame):
             msg = (
                 f"Provided data to be plotted should be in a pandas dataframe, with"
@@ -79,28 +111,28 @@ class SimplePlotRequest(BaseRequest):
                 f"Provided data is of type: {type(data)}"
             )
             raise RequestError(msg)
-        if not isinstance(dimension_data, (pd.DataFrame, type(None))):
+        if not isinstance(dimensions_data, (pd.DataFrame, type(None))):
             msg = (
                 f"Dimensional data should be in a pandas dataframe.\n"
-                f"Provided data is of type: {type(dimension_data)}"
+                f"Provided data is of type: {type(dimensions_data)}"
             )
             raise RequestError(msg)
-        if not all(data.columns == dimension_data.columns):
+        if not all(data.columns == dimensions_data.columns):
             msg = (
-                f"Mismatch in column names of data and dimensional_data.\n"
+                f"Mismatch in column names of data and dimensions_data.\n"
                 f"Column names in data: {data.columns}"
-                f"Column names in dimensional_data: {dimension_data.columns}"
+                f"Column names in dimensions_data: {dimensions_data.columns}"
             )
             raise RequestError(msg)
         rouge_indices = [
             index
-            for index in dimension_data.index
-            if index not in acceptable_dimensional_data_indices
+            for index in dimensions_data.index
+            if index not in acceptable_dimensions_data_indices
         ]
         if rouge_indices:
             msg = (
-                f"dimensional_data should only contain the following indices:\n"
-                f"{acceptable_dimensional_data_indices}\n"
+                f"dimensions_data should only contain the following indices:\n"
+                f"{acceptable_dimensions_data_indices}\n"
                 f"The dataframe provided contains the following unsupported indices:\n"
                 f"{rouge_indices}"
             )
@@ -111,14 +143,14 @@ class SimplePlotRequest(BaseRequest):
                 f"{type(chart_title)}"
             )
             raise RequestError(msg)
-        if not isinstance(printmessage, str):
-            if not isinstance(printmessage, list):
+        if not isinstance(message, str):
+            if not isinstance(message, list):
                 msg = (
                     f"Message/s to be printed should be string or list of strings"
-                    f"Message provided is of type: {type(printmessage)}"
+                    f"Message provided is of type: {type(message)}"
                 )
                 raise RequestError(msg)
-            elif not all(isinstance(x, str) for x in printmessage):
+            elif not all(isinstance(x, str) for x in message):
                 msg = (
                     f"Message/s to be printed should be string or list of strings"
                     f"Some elements of the list are not strings"
@@ -126,13 +158,119 @@ class SimplePlotRequest(BaseRequest):
                 raise RequestError(msg)
         content = {
             "data": data,
-            "dimensional_data": dimension_data,
+            "dimensions_data": dimensions_data,
             "chart_title": chart_title,
-            "print_message": printmessage,
+            "message": message,
         }
-        super.__init__(
+        super().__init__(
             request_type="simple_plot",
             interaction_priority="no_interaction",
             content=content,
             request_id=request_id,
         )
+
+
+class ReferencePointPreference(BaseRequest):
+    def __init__(
+        self,
+        dimensions_data: pd.DataFrame,
+        message: str = None,
+        interaction_priority: str = "required",
+        preference_validator: Callable = None,
+        request_id: int = None,
+    ):
+        acceptable_dimensions_data_indices = [
+            "lower_limit",
+            "upper_limit",
+            "maximize",  # 1 if minimized, -1 if maximized
+            "ideal",
+            "nadir",
+        ]
+        if not isinstance(dimensions_data, (pd.DataFrame, type(None))):
+            msg = (
+                f"Dimensional data should be in a pandas dataframe.\n"
+                f"Provided data is of type: {type(dimensions_data)}"
+            )
+            raise RequestError(msg)
+        rouge_indices = [
+            index
+            for index in dimensions_data.index
+            if index not in acceptable_dimensions_data_indices
+        ]
+        if rouge_indices:
+            msg = (
+                f"dimensions_data should only contain the following indices:\n"
+                f"{acceptable_dimensions_data_indices}\n"
+                f"The dataframe provided contains the following unsupported indices:\n"
+                f"{rouge_indices}"
+            )
+            raise RequestError(msg)
+        if not isinstance(message, str):
+            if not isinstance(message, list):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Message provided is of type: {type(message)}"
+                )
+                raise RequestError(msg)
+            elif not all(isinstance(x, str) for x in message):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Some elements of the list are not strings"
+                )
+                raise RequestError(msg)
+        if message is None:
+            message = (
+                f"Please provide a reference point better than"
+                f"{dimensions_data['nadir']}, but worse than {dimensions_data['ideal']}"
+            )
+        if preference_validator is None:
+            preference_validator = validte_ref_point_with_ideal_and_nadir
+        content = {
+            "dimensions_data": dimensions_data,
+            "message": message,
+            "validator": preference_validator,
+        }
+        super().__init__(
+            request_type="reference_point_preference",
+            interaction_priority=interaction_priority,
+            content=content,
+            request_id=request_id,
+        )
+
+    @BaseRequest.response.setter
+    def response(self, value):
+        if not self.content["validator"](
+            reference_point=value, dimensions_data=self.content["dimensions_data"]
+        ):
+            msg = (
+                f"Given preference is not valid. Please give a valid preference.\n"
+                f"If the preference is valid and you still recieve this error, the \n"
+                f"validator might be buggy. Please contact the devs."
+            )
+            raise RequestError(msg)
+        self.response = value
+
+
+def validte_ref_point_with_ideal_and_nadir(
+    dimensions_data: pd.DataFrame, reference_point: pd.DataFrame
+):
+    ideal_fitness = dimensions_data["ideal"] * dimensions_data["maximize"]
+    nadir_fitness = dimensions_data["nadir"] * dimensions_data["maximize"]
+    ref_point_fitness = reference_point * dimensions_data["maximize"]
+    return all(ideal_fitness < ref_point_fitness < nadir_fitness)
+
+
+def validte_ref_point_with_ideal(
+    dimensions_data: pd.DataFrame, reference_point: pd.DataFrame
+):
+    ideal_fitness = dimensions_data["ideal"] * dimensions_data["maximize"]
+    ref_point_fitness = reference_point * dimensions_data["maximize"]
+    return all(ideal_fitness < ref_point_fitness)
+
+
+def validte_with_ref_point_nadir(
+    dimensions_data: pd.DataFrame, reference_point: pd.DataFrame
+):
+    nadir_fitness = dimensions_data["nadir"] * dimensions_data["maximize"]
+    ref_point_fitness = reference_point * dimensions_data["maximize"]
+    return all(ref_point_fitness < nadir_fitness)
