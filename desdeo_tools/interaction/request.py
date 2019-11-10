@@ -97,9 +97,9 @@ class SimplePlotRequest(BaseRequest):
     def __init__(
         self,
         data: pd.DataFrame,
+        message: Union[str, List[str]],
         dimensions_data: pd.DataFrame = None,
         chart_title: str = None,
-        message: Union[str, List[str]] = None,
         request_id=None,
     ):
         acceptable_dimensions_data_indices = [
