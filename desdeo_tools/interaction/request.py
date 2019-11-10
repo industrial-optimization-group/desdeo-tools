@@ -1,9 +1,9 @@
-from typing import List, Union, Callable
+from typing import Callable, List, Union
 
 import pandas as pd
 
+from desdeo_tools.interaction.validators import validate_ref_point_with_ideal_and_nadir
 from desdeo_tools.utils.frozen import FrozenClass
-from desdeo_tools.interaction import validate_ref_point_with_ideal_and_nadir
 
 
 class RequestError(Exception):
@@ -103,8 +103,6 @@ class SimplePlotRequest(BaseRequest):
         request_id=None,
     ):
         acceptable_dimensions_data_indices = [
-            "lower_limit",
-            "upper_limit",
             "minimize",  # 1 if minimized, -1 if maximized
             "ideal",
             "nadir",
@@ -194,8 +192,6 @@ class ReferencePointPreference(BaseRequest):
         if preference_validator is None:
             preference_validator = validate_ref_point_with_ideal_and_nadir
         acceptable_dimensions_data_indices = [
-            "lower_limit",
-            "upper_limit",
             "minimize",  # 1 if minimized, -1 if maximized
             "ideal",
             "nadir",
@@ -253,4 +249,3 @@ class ReferencePointPreference(BaseRequest):
             reference_point=value, dimensions_data=self.content["dimensions_data"]
         )
         self._response = value
-
