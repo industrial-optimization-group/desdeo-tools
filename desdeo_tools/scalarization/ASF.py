@@ -368,7 +368,14 @@ class AugmentedGuessASF(ASFBase):
         else:
             f = objective_vectors
 
-        z = reference_point
+        if reference_point.ndim == 1:
+            z = reference_point
+        elif reference_point.ndim == 2 and reference_point.shape[0] == 1:
+            z = reference_point[0]
+        else:
+            msg = "Error interpreting reference point"
+            raise ASFError(msg)
+
         nad = self.nadir
         uto = self.ideal - self.rho
         ex_mask = np.full((f.shape[1]), True, dtype=bool)
