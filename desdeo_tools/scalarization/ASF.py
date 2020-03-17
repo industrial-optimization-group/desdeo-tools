@@ -308,7 +308,7 @@ class PointMethodASF(ASFBase):
         self.nadir = nadir
         self.ideal = ideal
         self.rho = rho
-        self.rho_sum = rho
+        self.rho_sum = rho_sum
 
     def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray):
         # assure this function works with single objective vectors
