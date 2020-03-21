@@ -61,6 +61,11 @@ class Scalarizer:
 
         return res_scal
 
+    def __call__(self, xs: np.ndarray) -> np.ndarray:
+        """Wrapper to the evaluate method.
+        """
+        return self.evaluate(xs)
+
 
 if __name__ == "__main__":
     from desdeo_problem.Problem import MOProblem
