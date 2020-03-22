@@ -63,8 +63,16 @@ def test_dummy_no_cons():
 def test_dummy_cons():
     method = ScalarMethod(dummy_minimizer)
     solver = ScalarMinimizer(
-        simple_problem, np.array([[0, 0, 0], [1, 1, 1]]), None, method
+        simple_problem, np.array([[0, 0, 0], [1, 1, 1]]), simple_constr, method
     )
+
+    res = solver.minimize(np.array([0.5, 0.5, 0.1]))
+
+    assert res["success"]
+
+    res = solver.minimize(np.array([0.5, 0.5, 0.5]))
+
+    assert not res["success"]
 
 
 if __name__ == "__main__":
@@ -74,4 +82,6 @@ if __name__ == "__main__":
     )
 
     res = solver.minimize(np.array([0.5, 0.1, 0.1]))
+    print(res)
+    res = solver.minimize(np.array([0.5, 0.1, 0.5]))
     print(res)

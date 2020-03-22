@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 
 from desdeo_tools.scalarization.Scalarizer import Scalarizer
+from desdeo_tools.scalarization.ASF import PointMethodASF
 
 
 def simple_vector_valued_fun(xs: np.ndarray, extra: int = 0):
@@ -53,3 +54,33 @@ def test_scalarizer_simple_with_arg():
     res = scalarizer.evaluate(xs)
 
     assert np.array_equal(res, [-17, -63, -28])
+
+
+def test_scalarizer_asf():
+    asf = PointMethodASF(np.array([10, 10, 10]), np.array([-10, -10, -10]))
+    ref = np.atleast_2d([1, 5, 2.5])
+    scalarizer = Scalarizer(
+        simple_vector_valued_fun, asf, scalarizer_args={"reference_point": ref}
+    )
+
+    res = scalarizer.evaluate(np.atleast_2d([2, 1, 1, 1]))
+
+    assert np.allclose(res, 0.1000002)
+
+
+if __name__ == "__main__":
+    asf = PointMethodASF(np.array([10, 10, 10]), np.array([-10, -10, -10]))
+    ref = np.atleast_2d([2.5, 2.5, 2.5])
+    scalarizer = Scalarizer(
+        simple_vector_valued_fun, asf, scalarizer_args={"reference_point": ref}
+    )
+
+    res = scalarizer.evaluate(np.atleast_2d([2, 1, 1, 1]))
+    print(res)
+
+    asf.nadir = np.array([9,9,9])
+
+    res = scalarizer.evaluate(np.atleast_2d([2, 1, 1, 1]))
+    print(res)
+
+
