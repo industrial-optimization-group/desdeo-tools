@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "desdeo-tools"
-version = "0.2.1"
+version = "0.2.2"
 description = "Generic tools and design language used in the DESDEO framework"
-authors = ["Bhupinder Saini"]
+authors = ["Bhupinder Saini", "Giovanni Misitano"]
 license = "MIT"
 
 [tool.poetry.dependencies]
