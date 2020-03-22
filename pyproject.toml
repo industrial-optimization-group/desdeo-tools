@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "desdeo-tools"
-version = "0.1.3"
+version = "0.2.1"
 description = "Generic tools and design language used in the DESDEO framework"
 authors = ["Bhupinder Saini"]
 license = "MIT"
@@ -14,7 +14,7 @@ matplotlib = "^3.2.1"
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
 pylint = "^2.4"
-black = {version = "^18.3-alpha.0", allows-prereleases = true}
+black = {version = "^18.3-alpha.0", allow-prereleases = true}
 jupyter = "^1.0"
 desdeo_problem = "^0.13.0"
 pytest = "^5.4.1"
