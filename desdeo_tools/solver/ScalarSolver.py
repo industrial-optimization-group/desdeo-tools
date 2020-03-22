@@ -114,7 +114,7 @@ class ScalarMinimizer:
             # assuming that all constraints hold when they return a positive value.
             if self._constraint_evaluator is not None:
                 scipy_cons = NonlinearConstraint(
-                    self._constraint_evaluator, -np.inf, 0
+                    self._constraint_evaluator, 0, np.inf
                 )
             else:
                 scipy_cons = ()
