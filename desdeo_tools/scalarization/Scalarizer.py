@@ -1,4 +1,4 @@
-"""Implements methods for scalarizing vector valued function.
+"""Implements methods for scalarizing vector valued functions.
 
 """
 from typing import Callable, Optional, Any
@@ -11,9 +11,6 @@ class Scalarizer:
     given scalarization function.
     """
 
-    # How to scalarize?
-    # What can be expected from the function?
-
     def __init__(
         self,
         evaluator: Callable,
@@ -23,7 +20,7 @@ class Scalarizer:
     ):
         """
         Args:
-            evaluator (Callable): A Callable object returning numpy array.
+            evaluator (Callable): A Callable object returning a numpy array.
             scalarizer (Callable): A function which should accepts as its
             arguments the output of evaluator and return a single value.
             evaluator_args (Any, optional): Optional arguments to be passed to
@@ -38,7 +35,7 @@ class Scalarizer:
 
     def evaluate(self, xs: np.ndarray) -> np.ndarray:
         """Evaluates the scalarized function with the given arguments and
-        returns a scalar value for each vector on variables given in a numpy
+        returns a scalar value for each vector of variables given in a numpy
         array.
         
         Args:
@@ -67,7 +64,7 @@ class Scalarizer:
         return self.evaluate(xs)
 
 
-if __name__ == "__main__":
+""" if __name__ == "__main__":
     from desdeo_problem.Problem import MOProblem
     from desdeo_problem.Objective import _ScalarObjective
     from desdeo_problem.Variable import variable_builder
@@ -119,5 +116,4 @@ if __name__ == "__main__":
     )
 
     res = scalarizer.evaluate(np.array([[0.5, 0.5], [0.4, 0.4]]))
-    print(res)
-
+    print(res) """

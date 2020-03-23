@@ -22,8 +22,8 @@ class ScalarMethod:
             return a dictionary with at least the keys: "x" the found optimal solution,
             "success" boolean indicating if the minimization was successfull,
             "message" a string of additional info.
-            method_args ([type], optional): Any other arguments to be
-            supllied to the method. Defaults to None.
+            method_args (Dict, optional): Any other keyword arguments to be supplied
+            to the method. Defaults to None.
         """
         self._method = method
         self._method_args = method_args
@@ -40,10 +40,21 @@ class ScalarMethod:
         Args:
             obj_fun (Callable): A callable scalar valued function that
             accpepts a two dimensional numpy array as its first arguments.
+            x0 (np.ndarray): An initial guess.
+            bounds (np.ndarray): The upper and lower bounds for each variable
+            accepted by obj_fun. Expects a 2D numpy array with each row
+            representing the lower and upper bounds of a variable. The first column
+            should contain the lower bounds and the last column the upper bounds.
+            Use np.inf to indicate no bound.
+            constraint_evaluator (Callable): Should accepts exactly the
+            same arguments as obj_fun. Returns a scalar value for each constraint
+            present. This scalar value should be positive if a constraint holds, and negative
+            otherwise.
         
         Returns:
-            Tuple[np.ndarray, np.float]: The optimal variables and funtion
-            value found.
+            Dict: A dictionary with at least the following entries: 'x' indicating the optimal
+            variables found, 'fun' the optimal value of the optimized functoin, and 'success' a boolean
+            indicating whether the optimizaton was conducted successfully.
         """
         if self._method_args is not None:
             res = self._method(
@@ -108,6 +119,11 @@ class ScalarMinimizer:
         
         Args:
             x0 (np.ndarray): A numpy array containing an initial guess of variable values.
+
+        Returns:
+            Dict: A dictionary with at least the following entries: 'x' indicating the optimal
+            variables found, 'fun' the optimal value of the optimized functoin, and 'success' a boolean
+            indicating whether the optimizaton was conducted successfully.
         """
         if self._use_scipy:
             # create wrapper for the constraints to be used with scipy's minimize routine.
@@ -137,7 +153,7 @@ class ScalarMinimizer:
         return res
 
 
-if __name__ == "__main__":
+""" if __name__ == "__main__":
     from desdeo_problem.Problem import MOProblem
     from desdeo_problem.Objective import _ScalarObjective
     from desdeo_problem.Variable import variable_builder
@@ -201,4 +217,4 @@ if __name__ == "__main__":
     )
 
     opt_res = solver.minimize(np.array([0.5, 0.5]))
-    print(opt_res.x)
+    print(opt_res.x) """
