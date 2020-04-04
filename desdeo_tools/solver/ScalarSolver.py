@@ -1,10 +1,10 @@
 """Implements methods for solving scalar valued functions.
 
 """
-from typing import Callable, Optional, Any, Tuple, Dict
+from typing import Callable, Optional, Any, Tuple, Dict, Union
 
 import numpy as np
-from scipy.optimize import minimize, NonlinearConstraint
+from scipy.optimize import minimize, NonlinearConstraint, differential_evolution
 
 from desdeo_tools.scalarization.Scalarizer import Scalarizer
 
@@ -82,7 +82,7 @@ class ScalarMinimizer:
         scalarizer: Scalarizer,
         bounds: np.ndarray,
         constraint_evaluator: Callable = None,
-        method: ScalarMethod = None,
+        method: Optional[Union[ScalarMethod, str]] = None,
     ):
         """ 
         Args:
@@ -94,25 +94,52 @@ class ScalarMinimizer:
             function returns should be two dimensional with each row corresponding to the
             constraint function values when evaluated. A value of less than zero is
             understood as a non valid constraint. Defaults to None.
-            method ([type], optional): The optimization method the scalarizer
-            should be minimized with. It should accepts as keyword arguments 'buounds' and 
+            method (Optional[Union[Callable, str]], optional): The optimization method the scalarizer
+            should be minimized with. It should accepts as keyword the arguments 'buounds' and 
             'constraints' which will be used to pass it the bounds and constraint_evaluator.
-            If none is supplied, uses the minimizer implemented in SciPy.
+            If none is supplied, uses the minimizer implemented in SciPy. Otherwise a str can be given
+            to use one of the preset solvers available. Use the method 'get_presets' to get a list
+            of available preset solvers.
             Defaults to None.
         """
+        self.presets = ["scipy_minimize", "scipy_de"]
+
         self._scalarizer = scalarizer
         self._bounds = bounds
         self._constraint_evaluator = constraint_evaluator
-        if method is None:
+        print(method)
+        if (method is None) or (method == "scipy_minimize"):
+            # scipy minimize
             self._use_scipy = True
             # Assuming the gradient reqruies evaluation of the
             # scalarized function with out of bounds variable values.
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             self._method = ScalarMethod(minimize)
+
+        elif method == "scipy_de":
+            # Scipy differential evolution
+            self._use_scipy = True
+            # Assuming the gradient reqruies evaluation of the
+            # scalarized function with out of bounds variable values.
+            # only relevant if the 'polish' option is set in scipy's DE
+            self._bounds[:, 0] += 1e-6
+            self._bounds[:, 1] -= 1e-6
+            scipy_de_method = ScalarMethod(
+                lambda x, _, **y: differential_evolution(x, **y),
+                method_args={"polish": False},
+            )
+            self._method = scipy_de_method
+
         else:
             self._use_scipy = False
             self._method = method
+
+    def get_presets(self):
+        """Return the list of preset minimizers available.
+
+        """
+        return self.get_presets
 
     def minimize(self, x0: np.ndarray) -> Dict:
         """Minimizes the scalarizer given an initial guess x0.
@@ -213,8 +240,9 @@ class ScalarMinimizer:
         problem.get_variable_bounds(),
         # lambda xs: problem.evaluate(xs).constraints,
         None,
-        None,
+        "scipy_de",
     )
 
     opt_res = solver.minimize(np.array([0.5, 0.5]))
-    print(opt_res.x) """
+    print(opt_res.x)
+"""

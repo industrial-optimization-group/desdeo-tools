@@ -75,13 +75,42 @@ def test_dummy_cons():
     assert not res["success"]
 
 
-if __name__ == "__main__":
-    method = ScalarMethod(dummy_minimizer)
+def test_scipy_de_cons():
     solver = ScalarMinimizer(
-        simple_problem, np.array([[0, 0, 0], [1, 1, 1]]), simple_constr, method
+        simple_problem,
+        np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]).T,
+        simple_constr,
+        "scipy_de",
     )
 
-    res = solver.minimize(np.array([0.5, 0.1, 0.1]))
-    print(res)
-    res = solver.minimize(np.array([0.5, 0.1, 0.5]))
+    res = solver.minimize(None)
+
+    assert res["success"]
+
+    assert np.all(np.array(res["constr"]) >= 0)
+
+
+def test_scipy_minimize_cons():
+    solver = ScalarMinimizer(
+        simple_problem,
+        np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]).T,
+        simple_constr,
+        "scipy_minimize",
+    )
+
+    res = solver.minimize(np.array([0.21, 0.999, 0.001]))
+
+    assert not res["success"]
+
+
+if __name__ == "__main__":
+    solver = ScalarMinimizer(
+        simple_problem,
+        np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]).T,
+        simple_constr,
+        "scipy_de",
+    )
+
+    res = solver.minimize(np.array([0.21, 0.999, 0.001]))
+
     print(res)
