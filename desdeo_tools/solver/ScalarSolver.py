@@ -107,7 +107,6 @@ class ScalarMinimizer:
         self._scalarizer = scalarizer
         self._bounds = bounds
         self._constraint_evaluator = constraint_evaluator
-        print(method)
         if (method is None) or (method == "scipy_minimize"):
             # scipy minimize
             self._use_scipy = True
