@@ -1,7 +1,7 @@
 """Implements methods for scalarizing vector valued functions.
 
 """
-from typing import Callable, Optional, Any
+from typing import Callable, Optional, Any, Dict
 
 import numpy as np
 
@@ -15,8 +15,8 @@ class Scalarizer:
         self,
         evaluator: Callable,
         scalarizer: Callable,
-        evaluator_args=None,
-        scalarizer_args=None,
+        evaluator_args: Dict = None,
+        scalarizer_args: Dict = None,
     ):
         """
         Args:
@@ -64,56 +64,38 @@ class Scalarizer:
         return self.evaluate(xs)
 
 
-""" if __name__ == "__main__":
-    from desdeo_problem.Problem import MOProblem
-    from desdeo_problem.Objective import _ScalarObjective
-    from desdeo_problem.Variable import variable_builder
+class DiscreteScalarizer:
+    """Implements a class to scalarize discrete vectors given a scalarizing function.
 
-    # create the problem
-    def f_1(x):
-        res = 4.07 + 2.27 * x[:, 0]
-        return -res
+    """
 
-    def f_2(x):
-        res = (
-            2.60
-            + 0.03 * x[:, 0]
-            + 0.02 * x[:, 1]
-            + 0.01 / (1.39 - x[:, 0] ** 2)
-            + 0.30 / (1.39 - x[:, 1] ** 2)
-        )
-        return -res
+    def __init__(self, scalarizer: Callable, scalarizer_args: Dict = None):
+        self._scalarizer = scalarizer
+        self._scalarizer_args = scalarizer_args
 
-    def f_3(x):
-        res = 8.21 - 0.71 / (1.09 - x[:, 0] ** 2)
-        return -res
+    def evaluate(self, vectors: np.ndarray) -> np.ndarray:
+        # guarantee two dimensions, makes sure works with single vectors as well.
+        vectors = np.atleast_2d(vectors)
 
-    def f_4(x):
-        res = 0.96 - 0.96 / (1.09 - x[:, 1] ** 2)
-        return -res
+        if self._scalarizer_args is not None:
+            res_scal = self._scalarizer(vectors, **self._scalarizer_args)
+        else:
+            res_scal = self._scalarizer(vectors)
 
-    def f_5(x):
-        return np.max([np.abs(x[:, 0] - 0.65), np.abs(x[:, 1] - 0.65)], axis=0)
+        return res_scal
 
-    f1 = _ScalarObjective(name="f1", evaluator=f_1)
-    f2 = _ScalarObjective(name="f2", evaluator=f_2)
-    f3 = _ScalarObjective(name="f3", evaluator=f_3)
-    f4 = _ScalarObjective(name="f4", evaluator=f_4)
-    f5 = _ScalarObjective(name="f5", evaluator=f_5)
+    def __call__(self, vectors: np.ndarray):
+        return self.evaluate(vectors)
 
-    varsl = variable_builder(
-        ["x_1", "x_2"],
-        initial_values=[0.5, 0.5],
-        lower_bounds=[0.3, 0.3],
-        upper_bounds=[1.0, 1.0],
+
+if __name__ == "__main__":
+    vectors = np.array([[1, 1, 1], [2, 2, 2], [4, 5, 6.0]])
+    vector = np.array([1, 2, 3])
+    dscalarizer = DiscreteScalarizer(
+        lambda x, a=1: a * np.sum(x, axis=1), scalarizer_args={"a": 2}
     )
-
-    problem = MOProblem(variables=varsl, objectives=[f1, f2, f3, f4, f5])
-
-    scalarizer = Scalarizer(
-        lambda xs: problem.evaluate(xs).objectives,
-        lambda ys: np.sum(ys, axis=1),
-    )
-
-    res = scalarizer.evaluate(np.array([[0.5, 0.5], [0.4, 0.4]]))
-    print(res) """
+    res = dscalarizer(vectors)
+    res_1d = dscalarizer(vector)
+    print(res)
+    print(res_1d)
+    pass

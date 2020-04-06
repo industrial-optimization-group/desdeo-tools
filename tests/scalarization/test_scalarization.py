@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from desdeo_tools.scalarization.Scalarizer import Scalarizer
+from desdeo_tools.scalarization.Scalarizer import Scalarizer, DiscreteScalarizer
 from desdeo_tools.scalarization.ASF import PointMethodASF
 
 
@@ -68,6 +68,32 @@ def test_scalarizer_asf():
     assert np.allclose(res, 0.1000002)
 
 
+def test_discrete():
+    vectors = np.array([[1, 1, 1], [2, 2, 2], [4, 5, 6.0]])
+    dscalarizer = DiscreteScalarizer(lambda x: np.sum(x, axis=1))
+    res = dscalarizer(vectors)
+
+    assert np.array_equal(res, [3, 6, 15])
+
+
+def test_discrete_1d():
+    vector = np.array([1, 2, 3.0])
+    dscalarizer = DiscreteScalarizer(lambda x: np.sum(x, axis=1))
+    res_1d = dscalarizer(vector)
+
+    assert np.array_equal(res_1d, [6.0])
+
+
+def test_discrete_args():
+    vectors = np.array([[1, 1, 1], [2, 2, 2], [4, 5, 6.0]])
+    dscalarizer = DiscreteScalarizer(
+        lambda x, a=1: a * np.sum(x, axis=1), scalarizer_args={"a": 2}
+    )
+    res = dscalarizer(vectors)
+
+    assert np.array_equal(res, [6, 12, 30])
+
+
 if __name__ == "__main__":
     asf = PointMethodASF(np.array([10, 10, 10]), np.array([-10, -10, -10]))
     ref = np.atleast_2d([2.5, 2.5, 2.5])
@@ -78,9 +104,7 @@ if __name__ == "__main__":
     res = scalarizer.evaluate(np.atleast_2d([2, 1, 1, 1]))
     print(res)
 
-    asf.nadir = np.array([9,9,9])
+    asf.nadir = np.array([9, 9, 9])
 
     res = scalarizer.evaluate(np.atleast_2d([2, 1, 1, 1]))
     print(res)
-
-
