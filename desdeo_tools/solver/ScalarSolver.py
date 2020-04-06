@@ -246,9 +246,8 @@ if __name__ == "__main__":
     nadir = np.array([1, 1, 1, 1])
 
     asf = PointMethodASF(nadir, ideal)
-    con = lambda x: x[:, 0] > 0.4
-    dscalarizer = DiscreteScalarizer(asf, {"reference_point": nadir})
-    dminimizer = DiscreteMinimizer(dscalarizer, constraint_evaluator=con)
+    dscalarizer = DiscreteScalarizer(asf, {"reference_point": None})
+    dminimizer = DiscreteMinimizer(dscalarizer)
 
     non_dominated_points = np.array(
         [
@@ -259,11 +258,11 @@ if __name__ == "__main__":
         ]
     )
 
-    dscalarizer._scalarizer_args = {
-        "reference_point": np.array([0.2, 0.4, 0.6, 0.8])
-    }
+    z = np.array([0.4, 0.2, 0.6, 0.8])
 
-    print(con(non_dominated_points))
+    dscalarizer._scalarizer_args = {"reference_point": z}
+
+    print(asf(non_dominated_points, reference_point=z))
 
     res = dminimizer.minimize(non_dominated_points)
     print(non_dominated_points[res])
