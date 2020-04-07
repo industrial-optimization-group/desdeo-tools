@@ -146,6 +146,13 @@ class ScalarMinimizer:
             self._use_scipy = method._use_scipy
             self._method = method
 
+            if self._use_scipy:
+                # Assuming the gradient reqruies evaluation of the
+                # scalarized function with out of bounds variable values.
+                # only relevant if the 'polish' option is set in scipy's DE
+                self._bounds[:, 0] += 1e-6
+                self._bounds[:, 1] -= 1e-6
+
     def get_presets(self):
         """Return the list of preset minimizers available.
 
