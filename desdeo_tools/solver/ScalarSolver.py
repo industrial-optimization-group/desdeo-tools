@@ -17,7 +17,12 @@ class ScalarMethod:
     """A class the define and implement methods for minimizing scalar valued functions.
     """
 
-    def __init__(self, method: Callable, method_args=None):
+    def __init__(
+        self,
+        method: Callable,
+        method_args=None,
+        use_scipy: Optional[bool] = False,
+    ):
         """
         Args:
             method (Callable): A callable minimizer function which expects a
@@ -28,9 +33,12 @@ class ScalarMethod:
             "message" a string of additional info.
             method_args (Dict, optional): Any other keyword arguments to be supplied
             to the method. Defaults to None.
+            use_scipy (Optional[bool]): Whether to use scipy's NonLinearConstraint to
+            handle the constraints.
         """
         self._method = method
         self._method_args = method_args
+        self._use_scipy = use_scipy
 
     def __call__(
         self,
@@ -135,7 +143,7 @@ class ScalarMinimizer:
             self._method = scipy_de_method
 
         else:
-            self._use_scipy = False
+            self._use_scipy = method._use_scipy
             self._method = method
 
     def get_presets(self):
@@ -144,22 +152,18 @@ class ScalarMinimizer:
         """
         return self.get_presets
 
-    def minimize(
-        self, x0: np.ndarray, use_scipy: Optional[bool] = False
-    ) -> Dict:
+    def minimize(self, x0: np.ndarray) -> Dict:
         """Minimizes the scalarizer given an initial guess x0.
         
         Args:
             x0 (np.ndarray): A numpy array containing an initial guess of variable values.
-            use_scipy (Optional[bool]): Whether the constraints should be
-            internally handled as scipy NonLinearConstraints.
 
         Returns:
             Dict: A dictionary with at least the following entries: 'x' indicating the optimal
             variables found, 'fun' the optimal value of the optimized functoin, and 'success' a boolean
             indicating whether the optimizaton was conducted successfully.
         """
-        if self._use_scipy or use_scipy:
+        if self._use_scipy:
             # create wrapper for the constraints to be used with scipy's minimize routine.
             # assuming that all constraints hold when they return a positive value.
             if self._constraint_evaluator is not None:
