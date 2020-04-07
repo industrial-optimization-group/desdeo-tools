@@ -144,18 +144,22 @@ class ScalarMinimizer:
         """
         return self.get_presets
 
-    def minimize(self, x0: np.ndarray) -> Dict:
+    def minimize(
+        self, x0: np.ndarray, use_scipy: Optional[bool] = False
+    ) -> Dict:
         """Minimizes the scalarizer given an initial guess x0.
         
         Args:
             x0 (np.ndarray): A numpy array containing an initial guess of variable values.
+            use_scipy (Optional[bool]): Whether the constraints should be
+            internally handled as scipy NonLinearConstraints.
 
         Returns:
             Dict: A dictionary with at least the following entries: 'x' indicating the optimal
             variables found, 'fun' the optimal value of the optimized functoin, and 'success' a boolean
             indicating whether the optimizaton was conducted successfully.
         """
-        if self._use_scipy:
+        if self._use_scipy or use_scipy:
             # create wrapper for the constraints to be used with scipy's minimize routine.
             # assuming that all constraints hold when they return a positive value.
             if self._constraint_evaluator is not None:
