@@ -241,7 +241,7 @@ class DiscreteMinimizer:
             computed with the given scalarizer.
         """
         if self._constraint_evaluator is None:
-            return np.argmin(self._scalarizer(vectors))
+            return np.nanargmin(self._scalarizer(vectors))
         else:
             bad_con_mask = ~self._constraint_evaluator(vectors)
             if np.all(bad_con_mask):
