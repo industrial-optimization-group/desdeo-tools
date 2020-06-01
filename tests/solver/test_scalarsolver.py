@@ -1,4 +1,11 @@
-from desdeo_tools.solver.ScalarSolver import ScalarMethod, ScalarMinimizer
+from desdeo_tools.solver.ScalarSolver import (
+    ScalarMethod,
+    ScalarMinimizer,
+    DiscreteMinimizer,
+    DiscreteScalarizer,
+    ScalarSolverException,
+)
+from desdeo_tools.scalarization.ASF import PointMethodASF
 
 import pytest
 import numpy as np
@@ -101,6 +108,73 @@ def test_scipy_minimize_cons():
     res = solver.minimize(np.array([0.21, 0.999, 0.001]))
 
     assert not res["success"]
+
+
+def test_discrete_solver():
+    ideal = np.array([0, 0, 0, 0])
+    nadir = np.array([1, 1, 1, 1])
+
+    asf = PointMethodASF(nadir, ideal)
+    dscalarizer = DiscreteScalarizer(asf, {"reference_point": nadir})
+    dminimizer = DiscreteMinimizer(dscalarizer)
+
+    non_dominated_points = np.array(
+        [
+            [0.2, 0.4, 0.6, 0.8],
+            [0.4, 0.2, 0.6, 0.8],
+            [0.6, 0.4, 0.2, 0.8],
+            [0.4, 0.8, 0.6, 0.2],
+        ]
+    )
+
+    # first occurrence
+    res_ind = dminimizer.minimize(non_dominated_points)
+    assert res_ind == 0
+
+    dscalarizer._scalarizer_args = {
+        "reference_point": np.array([0.6, 0.4, 0.2, 0.8])
+    }
+    res_ind = dminimizer.minimize(non_dominated_points)
+
+    assert res_ind == 2
+
+
+def test_discrete_solver_with_con():
+    ideal = np.array([0, 0, 0, 0])
+    nadir = np.array([1, 1, 1, 1])
+
+    asf = PointMethodASF(nadir, ideal)
+    con = lambda x: x[:, 0] > 0.2
+    dscalarizer = DiscreteScalarizer(asf, {"reference_point": nadir})
+    dminimizer = DiscreteMinimizer(dscalarizer, constraint_evaluator=con)
+
+    non_dominated_points = np.array(
+        [
+            [0.2, 0.4, 0.6, 0.8],
+            [0.4, 0.2, 0.6, 0.8],
+            [0.6, 0.4, 0.2, 0.8],
+            [0.4, 0.8, 0.6, 0.2],
+        ]
+    )
+
+    # first occurrence with first point invalid
+    res_ind = dminimizer.minimize(non_dominated_points)
+
+    assert res_ind == 1
+
+    # first point as closest, but invalid
+    dscalarizer._scalarizer_args = {
+        "reference_point": np.array([0.2, 0.4, 0.6, 0.8])
+    }
+    res_ind = dminimizer.minimize(non_dominated_points)
+
+    assert res_ind == 1
+
+    # all points invalid
+    dminimizer._constraint_evaluator = lambda x: x[:, 0] > 1.0
+
+    with pytest.raises(ScalarSolverException):
+        _ = dminimizer.minimize(non_dominated_points)
 
 
 if __name__ == "__main__":

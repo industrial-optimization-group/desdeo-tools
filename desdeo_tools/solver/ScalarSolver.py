@@ -6,14 +6,23 @@ from typing import Callable, Optional, Any, Tuple, Dict, Union
 import numpy as np
 from scipy.optimize import minimize, NonlinearConstraint, differential_evolution
 
-from desdeo_tools.scalarization.Scalarizer import Scalarizer
+from desdeo_tools.scalarization.Scalarizer import Scalarizer, DiscreteScalarizer
+
+
+class ScalarSolverException(Exception):
+    pass
 
 
 class ScalarMethod:
     """A class the define and implement methods for minimizing scalar valued functions.
     """
 
-    def __init__(self, method: Callable, method_args=None):
+    def __init__(
+        self,
+        method: Callable,
+        method_args=None,
+        use_scipy: Optional[bool] = False,
+    ):
         """
         Args:
             method (Callable): A callable minimizer function which expects a
@@ -24,9 +33,12 @@ class ScalarMethod:
             "message" a string of additional info.
             method_args (Dict, optional): Any other keyword arguments to be supplied
             to the method. Defaults to None.
+            use_scipy (Optional[bool]): Whether to use scipy's NonLinearConstraint to
+            handle the constraints.
         """
         self._method = method
         self._method_args = method_args
+        self._use_scipy = use_scipy
 
     def __call__(
         self,
@@ -131,8 +143,15 @@ class ScalarMinimizer:
             self._method = scipy_de_method
 
         else:
-            self._use_scipy = False
+            self._use_scipy = method._use_scipy
             self._method = method
+
+            if self._use_scipy:
+                # Assuming the gradient reqruies evaluation of the
+                # scalarized function with out of bounds variable values.
+                # only relevant if the 'polish' option is set in scipy's DE
+                self._bounds[:, 0] += 1e-6
+                self._bounds[:, 1] -= 1e-6
 
     def get_presets(self):
         """Return the list of preset minimizers available.
@@ -179,69 +198,86 @@ class ScalarMinimizer:
         return res
 
 
-""" if __name__ == "__main__":
-    from desdeo_problem.Problem import MOProblem
-    from desdeo_problem.Objective import _ScalarObjective
-    from desdeo_problem.Variable import variable_builder
-    from desdeo_tools.scalarization.Scalarizer import Scalarizer
+class DiscreteMinimizer:
+    """Implements a class for finding the minimum value of a discrete of scalarized vectors.
+    
+    """
 
-    # create the problem
-    def f_1(x):
-        res = 4.07 + 2.27 * x[:, 0]
-        return -res
+    def __init__(
+        self,
+        discrete_scalarizer: DiscreteScalarizer,
+        constraint_evaluator: Optional[
+            Callable[[np.ndarray], np.ndarray]
+        ] = None,
+    ):
+        """
+        Args:
+            discrete_scalarizer (DiscreteScalarizer): A discrete scalarizer
+            which takes as its arguments an array of vectors and returns a
+            scalar value for each vector.
+            constraint_evaluator (Optional[Callable[[np.ndarray],
+            np.ndarray]], optional): An evaluator which returns True if a
+            given vector(s) adheres to given constraints, and False
+            otherwise. Defaults to None.
+        """
+        self._scalarizer = discrete_scalarizer
+        self._constraint_evaluator = constraint_evaluator
 
-    def f_2(x):
-        res = (
-            2.60
-            + 0.03 * x[:, 0]
-            + 0.02 * x[:, 1]
-            + 0.01 / (1.39 - x[:, 0] ** 2)
-            + 0.30 / (1.39 - x[:, 1] ** 2)
-        )
-        return -res
+    def minimize(self, vectors: np.ndarray) -> int:
+        """Find the index of the element in vectors which minimizes the
+        scalar value returned by the scalarizer. If multiple minimum values
+        are found, returns the index of the first occurrence.
+        
+        Args:
+            vectors (np.ndarray): The vectors for which the minimum scalar
+            value should be computed for.
+        
+        Raises:
+            ScalarSolverException: None of the given vectors adhere to the
+            given constraints.
+        
+        Returns:
+            int: The index of the vector in vectors which minimizes the value
+            computed with the given scalarizer.
+        """
+        if self._constraint_evaluator is None:
+            return np.nanargmin(self._scalarizer(vectors))
+        else:
+            bad_con_mask = ~self._constraint_evaluator(vectors)
+            if np.all(bad_con_mask):
+                raise ScalarSolverException(
+                    "None of the supplied vectors adhere to the given "
+                    "constraint function."
+                )
+            tmp = np.copy(vectors)
+            tmp[bad_con_mask] = np.nan
+            return np.nanargmin(self._scalarizer(tmp))
 
-    def f_3(x):
-        res = 8.21 - 0.71 / (1.09 - x[:, 0] ** 2)
-        return -res
 
-    def f_4(x):
-        res = 0.96 - 0.96 / (1.09 - x[:, 1] ** 2)
-        return -res
+if __name__ == "__main__":
+    from desdeo_tools.scalarization.ASF import PointMethodASF
 
-    def f_5(x):
-        return np.max([np.abs(x[:, 0] - 0.65), np.abs(x[:, 1] - 0.65)], axis=0)
+    ideal = np.array([0, 0, 0, 0])
+    nadir = np.array([1, 1, 1, 1])
 
-    f1 = _ScalarObjective(name="f1", evaluator=f_1)
-    f2 = _ScalarObjective(name="f2", evaluator=f_2)
-    f3 = _ScalarObjective(name="f3", evaluator=f_3)
-    f4 = _ScalarObjective(name="f4", evaluator=f_4)
-    f5 = _ScalarObjective(name="f5", evaluator=f_5)
+    asf = PointMethodASF(nadir, ideal)
+    dscalarizer = DiscreteScalarizer(asf, {"reference_point": None})
+    dminimizer = DiscreteMinimizer(dscalarizer)
 
-    varsl = variable_builder(
-        ["x_1", "x_2"],
-        initial_values=[0.5, 0.5],
-        lower_bounds=[0.3, 0.3],
-        upper_bounds=[1.0, 1.0],
+    non_dominated_points = np.array(
+        [
+            [0.2, 0.4, 0.6, 0.8],
+            [0.4, 0.2, 0.6, 0.8],
+            [0.6, 0.4, 0.2, 0.8],
+            [0.4, 0.8, 0.6, 0.2],
+        ]
     )
 
-    problem = MOProblem(variables=varsl, objectives=[f1, f2, f3, f4, f5])
+    z = np.array([0.4, 0.2, 0.6, 0.8])
 
-    scalarizer = Scalarizer(
-        lambda xs: problem.evaluate(xs).objectives,
-        lambda ys: np.sum(ys, axis=1),
-    )
+    dscalarizer._scalarizer_args = {"reference_point": z}
 
-    # res = scalarizer(np.array([[0.5, 0.5], [0.4, 0.4]]))
-    # print(problem.get_variable_bounds())
+    print(asf(non_dominated_points, reference_point=z))
 
-    solver = ScalarMinimizer(
-        scalarizer,
-        problem.get_variable_bounds(),
-        # lambda xs: problem.evaluate(xs).constraints,
-        None,
-        "scipy_de",
-    )
-
-    opt_res = solver.minimize(np.array([0.5, 0.5]))
-    print(opt_res.x)
-"""
+    res = dminimizer.minimize(non_dominated_points)
+    print(non_dominated_points[res])
