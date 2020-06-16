@@ -1,6 +1,3 @@
-"""Implements methods for scalarizing vector valued functions.
-
-"""
 from typing import Any, Callable, Dict, Optional
 
 import numpy as np

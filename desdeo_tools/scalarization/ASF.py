@@ -1,7 +1,3 @@
-"""Define a general class and implementations of achievement scalarizing
-functions.
-
-"""
 import abc
 from abc import abstractmethod
 from os import path
