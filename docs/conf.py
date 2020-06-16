@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath("../desdeo-tools"))
 
 # -- Project information -----------------------------------------------------
 
-project = "desdeo-tools"
+project = "desdeo_tools"
 copyright = "2020, Multiobjective Optimization Group"
 author = "Multiobjective Optimization Group"
 
