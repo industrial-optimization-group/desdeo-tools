@@ -42,10 +42,12 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.viewcode",
     "recommonmark",
+    "nbsphinx",
+    "sphinx.ext.mathjax",
 ]
 numpydoc_show_class_members = False
 
-source_suffix = [".rst", ".md"]
+source_suffix = [".rst", ".md", ".ipynb"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -62,6 +64,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
+html_sourcelink_suffix = ""
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

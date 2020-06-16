@@ -12,6 +12,7 @@ Welcome to desdeo-tools's documentation!
 
    README <README>
    api
+   examples
 
 
 Indices and tables
