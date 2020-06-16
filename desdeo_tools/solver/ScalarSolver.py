@@ -1,12 +1,12 @@
 """Implements methods for solving scalar valued functions.
 
 """
-from typing import Callable, Optional, Any, Tuple, Dict, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
-from scipy.optimize import minimize, NonlinearConstraint, differential_evolution
+from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
-from desdeo_tools.scalarization.Scalarizer import Scalarizer, DiscreteScalarizer
+from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 
 
 class ScalarSolverException(Exception):
@@ -17,12 +17,7 @@ class ScalarMethod:
     """A class the define and implement methods for minimizing scalar valued functions.
     """
 
-    def __init__(
-        self,
-        method: Callable,
-        method_args=None,
-        use_scipy: Optional[bool] = False,
-    ):
+    def __init__(self, method: Callable, method_args=None, use_scipy: Optional[bool] = False):
         """
         Args:
             method (Callable): A callable minimizer function which expects a
@@ -40,18 +35,12 @@ class ScalarMethod:
         self._method_args = method_args
         self._use_scipy = use_scipy
 
-    def __call__(
-        self,
-        obj_fun: Callable,
-        x0: np.ndarray,
-        bounds: np.ndarray,
-        constraint_evaluator: Callable,
-    ) -> Dict:
+    def __call__(self, obj_fun: Callable, x0: np.ndarray, bounds: np.ndarray, constraint_evaluator: Callable) -> Dict:
         """Minimizes a scalar valued function.
         
         Args:
             obj_fun (Callable): A callable scalar valued function that
-            accpepts a two dimensional numpy array as its first arguments.
+            accepts a two dimensional numpy array as its first arguments.
             x0 (np.ndarray): An initial guess.
             bounds (np.ndarray): The upper and lower bounds for each variable
             accepted by obj_fun. Expects a 2D numpy array with each row
@@ -65,21 +54,13 @@ class ScalarMethod:
         
         Returns:
             Dict: A dictionary with at least the following entries: 'x' indicating the optimal
-            variables found, 'fun' the optimal value of the optimized functoin, and 'success' a boolean
-            indicating whether the optimizaton was conducted successfully.
+            variables found, 'fun' the optimal value of the optimized function, and 'success' a boolean
+            indicating whether the optimization was conducted successfully.
         """
         if self._method_args is not None:
-            res = self._method(
-                obj_fun,
-                x0,
-                bounds=bounds,
-                constraints=constraint_evaluator,
-                **self._method_args
-            )
+            res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator, **self._method_args)
         else:
-            res = self._method(
-                obj_fun, x0, bounds=bounds, constraints=constraint_evaluator
-            )
+            res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator)
 
         return res
 
@@ -107,7 +88,7 @@ class ScalarMinimizer:
             constraint function values when evaluated. A value of less than zero is
             understood as a non valid constraint. Defaults to None.
             method (Optional[Union[Callable, str]], optional): The optimization method the scalarizer
-            should be minimized with. It should accepts as keyword the arguments 'buounds' and 
+            should be minimized with. It should accepts as keyword the arguments 'bounds' and 
             'constraints' which will be used to pass it the bounds and constraint_evaluator.
             If none is supplied, uses the minimizer implemented in SciPy. Otherwise a str can be given
             to use one of the preset solvers available. Use the method 'get_presets' to get a list
@@ -137,8 +118,7 @@ class ScalarMinimizer:
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             scipy_de_method = ScalarMethod(
-                lambda x, _, **y: differential_evolution(x, **y),
-                method_args={"polish": False},
+                lambda x, _, **y: differential_evolution(x, **y), method_args={"polish": False}
             )
             self._method = scipy_de_method
 
@@ -167,32 +147,22 @@ class ScalarMinimizer:
 
         Returns:
             Dict: A dictionary with at least the following entries: 'x' indicating the optimal
-            variables found, 'fun' the optimal value of the optimized functoin, and 'success' a boolean
+            variables found, 'fun' the optimal value of the optimized function, and 'success' a boolean
             indicating whether the optimizaton was conducted successfully.
         """
         if self._use_scipy:
             # create wrapper for the constraints to be used with scipy's minimize routine.
             # assuming that all constraints hold when they return a positive value.
             if self._constraint_evaluator is not None:
-                scipy_cons = NonlinearConstraint(
-                    self._constraint_evaluator, 0, np.inf
-                )
+                scipy_cons = NonlinearConstraint(self._constraint_evaluator, 0, np.inf)
             else:
                 scipy_cons = ()
 
-            res = self._method(
-                self._scalarizer,
-                x0,
-                bounds=self._bounds,
-                constraint_evaluator=scipy_cons,
-            )
+            res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons)
 
         else:
             res = self._method(
-                self._scalarizer,
-                x0,
-                bounds=self._bounds,
-                constraint_evaluator=self._constraint_evaluator,
+                self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=self._constraint_evaluator
             )
 
         return res
@@ -206,9 +176,7 @@ class DiscreteMinimizer:
     def __init__(
         self,
         discrete_scalarizer: DiscreteScalarizer,
-        constraint_evaluator: Optional[
-            Callable[[np.ndarray], np.ndarray]
-        ] = None,
+        constraint_evaluator: Optional[Callable[[np.ndarray], np.ndarray]] = None,
     ):
         """
         Args:
@@ -245,10 +213,7 @@ class DiscreteMinimizer:
         else:
             bad_con_mask = ~self._constraint_evaluator(vectors)
             if np.all(bad_con_mask):
-                raise ScalarSolverException(
-                    "None of the supplied vectors adhere to the given "
-                    "constraint function."
-                )
+                raise ScalarSolverException("None of the supplied vectors adhere to the given " "constraint function.")
             tmp = np.copy(vectors)
             tmp[bad_con_mask] = np.nan
             return np.nanargmin(self._scalarizer(tmp))
@@ -265,12 +230,7 @@ if __name__ == "__main__":
     dminimizer = DiscreteMinimizer(dscalarizer)
 
     non_dominated_points = np.array(
-        [
-            [0.2, 0.4, 0.6, 0.8],
-            [0.4, 0.2, 0.6, 0.8],
-            [0.6, 0.4, 0.2, 0.8],
-            [0.4, 0.8, 0.6, 0.2],
-        ]
+        [[0.2, 0.4, 0.6, 0.8], [0.4, 0.2, 0.6, 0.8], [0.6, 0.4, 0.2, 0.8], [0.4, 0.8, 0.6, 0.2]]
     )
 
     z = np.array([0.4, 0.2, 0.6, 0.8])

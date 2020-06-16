@@ -1,7 +1,7 @@
 """Implements methods for scalarizing vector valued functions.
 
 """
-from typing import Callable, Optional, Any, Dict
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 
@@ -12,11 +12,7 @@ class Scalarizer:
     """
 
     def __init__(
-        self,
-        evaluator: Callable,
-        scalarizer: Callable,
-        evaluator_args: Dict = None,
-        scalarizer_args: Dict = None,
+        self, evaluator: Callable, scalarizer: Callable, evaluator_args: Dict = None, scalarizer_args: Dict = None
     ):
         """
         Args:
@@ -43,7 +39,7 @@ class Scalarizer:
             on each of its rows.
         
         Returns:
-            np.ndarray: A 1D numpy array with the values returne by the
+            np.ndarray: A 1D numpy array with the values returned by the
             scalarizer for each row in xs.
         """
         if self._evaluator_args is not None:
@@ -91,9 +87,7 @@ class DiscreteScalarizer:
 if __name__ == "__main__":
     vectors = np.array([[1, 1, 1], [2, 2, 2], [4, 5, 6.0]])
     vector = np.array([1, 2, 3])
-    dscalarizer = DiscreteScalarizer(
-        lambda x, a=1: a * np.sum(x, axis=1), scalarizer_args={"a": 2}
-    )
+    dscalarizer = DiscreteScalarizer(lambda x, a=1: a * np.sum(x, axis=1), scalarizer_args={"a": 2})
     res = dscalarizer(vectors)
     res_1d = dscalarizer(vector)
     print(res)

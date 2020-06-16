@@ -3,7 +3,6 @@ functions.
 
 """
 import abc
-
 from abc import abstractmethod
 from os import path
 from typing import List, Union
@@ -25,13 +24,11 @@ class ASFBase(abc.ABC):
     """
 
     @abstractmethod
-    def __call__(
-        self, objective_vector: np.ndarray, reference_point: np.ndarray
-    ) -> Union[float, np.ndarray]:
+    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
         """Evaluate the ASF.
 
         Args:
-            objective_vectors (np.ndarray): The objective vectors to calulate
+            objective_vectors (np.ndarray): The objective vectors to calculate
             the values.
             reference_point (np.ndarray): The reference point to calculate the
             values.
@@ -41,7 +38,7 @@ class ASFBase(abc.ABC):
             values if objective is a 2D array.
 
         Note:
-            The reference point may not always necessarely be feasible, but
+            The reference point may not always necessarily be feasible, but
             it's dimensions should match that of the objective vector.
         """
         pass
@@ -65,9 +62,7 @@ class SimpleASF(ASFBase):
     def __init__(self, weights: np.ndarray):
         self.weights = weights
 
-    def __call__(
-        self, objective_vector: np.ndarray, reference_point: np.ndarray
-    ) -> Union[float, np.ndarray]:
+    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
         """Evaluate the simple order-representing ASF.
 
         Args:
@@ -85,23 +80,16 @@ class SimpleASF(ASFBase):
 
         """
         if not objective_vector.shape == reference_point.shape:
-            msg = (
-                "The dimensions of the objective vector {} and "
-                "reference_point {} do not match."
-            ).format(objective_vector, reference_point)
+            msg = ("The dimensions of the objective vector {} and " "reference_point {} do not match.").format(
+                objective_vector, reference_point
+            )
             raise ASFError(msg)
 
-        return np.max(
-            np.where(
-                np.isnan(reference_point),
-                -np.inf,
-                self.weights * (objective_vector - reference_point),
-            )
-        )
+        return np.max(np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)))
 
 
 class ReferencePointASF(ASFBase):
-    """Uses a reference point q and preferenial factors to scalarize a MOO problem.
+    """Uses a reference point q and preferential factors to scalarize a MOO problem.
     Defined in `Miettinen 2010`_ equation (2).
 
     Args:
@@ -126,25 +114,19 @@ class ReferencePointASF(ASFBase):
         Miettinen, K.; Eskelinen, P.; Ruiz, F. & Luque, M.
         NAUTILUS method: An interactive technique in multiobjective
         optimization based on the nadir point
-        Europen Joural of Operational Research, 2010, 206, 426-434
+        Europen Journal of Operational Research, 2010, 206, 426-434
 
     """
 
     def __init__(
-        self,
-        preferential_factors: np.ndarray,
-        nadir: np.ndarray,
-        utopian_point: np.ndarray,
-        rho: float = 0.1,
+        self, preferential_factors: np.ndarray, nadir: np.ndarray, utopian_point: np.ndarray, rho: float = 0.1
     ):
         self.preferential_factors = preferential_factors
         self.nadir = nadir
         self.utopian_point = utopian_point
         self.rho = rho
 
-    def __call__(
-        self, objective_vector: np.ndarray, reference_point: np.ndarray
-    ) -> Union[float, np.ndarray]:
+    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
         mu = self.preferential_factors
         f = objective_vector
         q = reference_point
@@ -206,9 +188,7 @@ class MaxOfTwoASF(ASFBase):
         self.rho = rho
         self.rho_sum = rho_sum
 
-    def __call__(
-        self, objective_vector: np.ndarray, reference_point: np.ndarray
-    ) -> Union[float, np.ndarray]:
+    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
         # assure this function works with single objective vectors
         if objective_vector.ndim == 1:
             f = objective_vector.reshape((1, -1))
@@ -231,7 +211,7 @@ class MaxOfTwoASF(ASFBase):
 
 
 class StomASF(ASFBase):
-    """Implementation of the satisficing trade-off method (STOM) as presented
+    """Implementation of the satisfying trade-off method (STOM) as presented
     in `Miettinen 2006` equation (3.2)
 
     Args:
@@ -259,9 +239,7 @@ class StomASF(ASFBase):
         self.rho = rho
         self.rho_sum = rho_sum
 
-    def __call__(
-        self, objective_vectors: np.ndarray, reference_point: np.ndarray
-    ) -> Union[float, np.ndarray]:
+    def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
         # assure this function works with single objective vectors
         if objective_vectors.ndim == 1:
             f = objective_vectors.reshape((1, -1))
@@ -298,13 +276,7 @@ class PointMethodASF(ASFBase):
 
     """
 
-    def __init__(
-        self,
-        nadir: np.ndarray,
-        ideal: np.ndarray,
-        rho: float = 1e-6,
-        rho_sum: float = 1e-6,
-    ):
+    def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6):
         self.nadir = nadir
         self.ideal = ideal
         self.rho = rho
@@ -334,8 +306,8 @@ class AugmentedGuessASF(ASFBase):
     Args:
         nadir (np.ndarray): The nadir point.
         ideal (np.ndarray): The ideal point.
-        indx_to_exclude (List[int]): The indices of the objective functions to
-        be excluded in calculating the first temr of the ASF.
+        index_to_exclude (List[int]): The indices of the objective functions to
+        be excluded in calculating the first term of the ASF.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
         term.
@@ -351,13 +323,13 @@ class AugmentedGuessASF(ASFBase):
         self,
         nadir: np.ndarray,
         ideal: np.ndarray,
-        indx_to_exclude: List[int],
+        index_to_exclude: List[int],
         rho: float = 1e-6,
         rho_sum: float = 1e-6,
     ):
         self.nadir = nadir
         self.ideal = ideal
-        self.indx_to_exclude = indx_to_exclude
+        self.index_to_exclude = index_to_exclude
         self.rho = rho
         self.rho_sum = rho_sum
 
@@ -379,17 +351,11 @@ class AugmentedGuessASF(ASFBase):
         nad = self.nadir
         uto = self.ideal - self.rho
         ex_mask = np.full((f.shape[1]), True, dtype=bool)
-        ex_mask[self.indx_to_exclude] = False
+        ex_mask[self.index_to_exclude] = False
 
-        max_term = np.max(
-            (f[:, ex_mask] - nad[ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1
-        )
-        sum_term_1 = self.rho_sum * np.sum(
-            (f[:, ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1
-        )
+        max_term = np.max((f[:, ex_mask] - nad[ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1)
+        sum_term_1 = self.rho_sum * np.sum((f[:, ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1)
         # avoid division by zeros
-        sum_term_2 = self.rho_sum * np.sum(
-            (f[:, ~ex_mask]) / (nad[~ex_mask] - uto[~ex_mask]), axis=1
-        )
+        sum_term_2 = self.rho_sum * np.sum((f[:, ~ex_mask]) / (nad[~ex_mask] - uto[~ex_mask]), axis=1)
 
         return max_term + sum_term_1 + sum_term_2
