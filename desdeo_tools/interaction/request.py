@@ -12,6 +12,11 @@ class RequestError(Exception):
 
 
 class BaseRequest(FrozenClass):
+    """The base class for all Request classes. Request classes are to be used 
+    to handle interaction between the user and the methods, as well as within
+    various methods. This class is frozen, so no variables other than that
+    already defined in current __init__ can be defined in derived classes.
+    """
     def __init__(
         self,
         request_type: str,
@@ -19,6 +24,26 @@ class BaseRequest(FrozenClass):
         content=None,
         request_id: int = None,
     ):
+        """Initialize a BaseRequest class. This method contains a lot of
+        boilerplate.
+
+        Args:
+            request_type (str): The type of request. Currently, one of ["print",
+            "simple_plot", "reference_point_preference",
+            "classification_preference"].
+            interaction_priority (str): The priority of preference, as decided
+            by the method. One of ["no_interaction", "not_required",
+            "recommended", "required"], with trivial meanings.
+            content ([type], optional): The data relevant to the request packet.
+            For example, if the request type is print, content may contain
+            strings to be printed. Typically a dict. Defaults to None.
+            request_id (int, optional): A unique identifier. Defaults to None.
+
+        Raises:
+            RequestError: If request type is not recognized
+            RequestError: If request priority is not recognized
+            RequestError: If request id is not an integer
+        """
         acceptable_types = [
             "print",
             "simple_plot",
@@ -71,7 +96,25 @@ class BaseRequest(FrozenClass):
 
 
 class PrintRequest(BaseRequest):
-    def __init__(self, message: Union[str, List[str]], request_id=None):
+    """Methods can use this request class to send out textual information to be
+    displayed to the decision maker. This could be a single message in the form
+    of a string, or multiple messages in a list of strings. The method of
+    displaying these messages is left to the UI.
+    """
+    def __init__(self, message: Union[str, List[str]], request_id: int=None):
+        """Initialise the PrintRequest.
+
+        Args:
+            message (Union[str, List[str]]): A single message (str) or a list of
+            messages to be displayed to the decision maker
+            request_id (int, optional): A unique identifier for this request.
+            Defaults to None.
+
+        Raises:
+            RequestError: If message is not a str or a list
+            RequestError: If message is a list but one or more elements are not
+            str.
+        """
         if not isinstance(message, str):
             if not isinstance(message, list):
                 msg = (
@@ -94,6 +137,19 @@ class PrintRequest(BaseRequest):
 
 
 class SimplePlotRequest(BaseRequest):
+    """Methods can use this request class to send out some data to be shown to
+    the decision maker (typically in the form of a plot). This data is usually a
+    set of solutions, stored in the content variable of this class. The manner
+    of visualization is left to the UI.
+
+    content is a dict that contains the following keys:
+    "data" (pandas.DataFrame): The data to be plotted.
+    "dimensional_data" (pandas.Dataframe): The data contained in this key can be
+    used to scale the data to be plotted.
+    "chart_title" (str): A recommended title for the visualization.
+    "message" (Union[str, List[str]]): A message or list of messages to be
+    displayed to the decision maker.
+    """
     def __init__(
         self,
         data: pd.DataFrame,
@@ -102,6 +158,30 @@ class SimplePlotRequest(BaseRequest):
         chart_title: str = None,
         request_id=None,
     ):
+        """Initialize the request packet
+
+        Args:
+            data (pd.DataFrame): The data to be plotted.
+            message (Union[str, List[str]]): A message or list of messages to be
+            displayed to the decision maker.
+            dimensions_data (pd.DataFrame, optional): Data used to used to scale
+            the data to be plotted. Defaults to None.
+            chart_title (str, optional): A recommended title for the 
+            visualization. Defaults to None.
+            request_id ([type], optional): A unique identifier. Defaults to None.
+
+        Raises:
+            RequestError: data is not a pandas DataFrame.
+            RequestError: dimensions_data is not a pandas DataFrame or None.
+            RequestError: A mismatch in the column names of data and
+            dimensions_data.
+            RequestError: If dimensions_data DataFrame contains indices other
+            that "minimize", "ideal", or "nadir".
+            RequestError: If chart_title is not str or None.
+            RequestError: If message is not a str or a list.
+            RequestError: If message is a list but one or more elements are not
+            str.
+        """
         acceptable_dimensions_data_indices = [
             "minimize",  # 1 if minimized, -1 if maximized
             "ideal",
@@ -174,6 +254,11 @@ class SimplePlotRequest(BaseRequest):
 
 
 class ReferencePointPreference(BaseRequest):
+    """Methods can use this request class to ask the DM to provide their
+    preferences in the form of a reference point. This reference point is
+    validated according to the needs of the method that initializes this class
+    object, before the reference point can be accepted in the response variable.
+    """
     def __init__(
         self,
         dimensions_data: pd.DataFrame,
@@ -182,6 +267,34 @@ class ReferencePointPreference(BaseRequest):
         preference_validator: Callable = None,
         request_id: int = None,
     ):
+        """Initialize the request class.
+
+        Args:
+            dimensions_data (pd.DataFrame): Minimal data that should be shown to
+            the decision maker. If a lot of data needs to be shown (i.e., with a
+            visualization), use SimplePlotRequest or related classes for that
+            purpose, and this class for the interaction with the decision maker.
+            message (str, optional): Message to be displayed to a decision
+            maker. Defaults to None.
+            interaction_priority (str, optional): The importance of the
+            interaction as decided by the method. If equal to "required", the
+            method will not continue without a DM preference. If equal to
+            "recommended", the interaction is recommended, but not required for
+            the continuation of the method. The case "not_required" is similar
+            to "recommended". Defaults to "required".
+            preference_validator (Callable, optional): A callable function that
+            tests whether a reference point provided by the DM is valid or not.
+            Defaults to None.
+            request_id (int, optional): A unique identifier. Defaults to None.
+
+        Raises:
+            RequestError: dimensions_data is not a pandas DataFrame.
+            RequestError: If dimensions_data DataFrame contains indices other
+            that "minimize", "ideal", or "nadir".
+            RequestError: If message is not a str or a list.
+            RequestError: If message is a list but one or more elements are not
+            str.
+        """
         if message is None:
             message = (
                 f"Please provide a reference point better than:\n"
@@ -241,7 +354,17 @@ class ReferencePointPreference(BaseRequest):
         )
 
     @BaseRequest.response.setter
-    def response(self, value):
+    def response(self, value: pd.DataFrame):
+        """Validate user preference. Accept if it is valid.
+
+        Args:
+            value (pd.DataFrame): The user preference in the form of a pandas
+            DataFrame
+
+        Raises:
+            RequestError: If reference point is not provided in a pandas
+            DataFrame.
+        """
         if not isinstance(value, pd.DataFrame):
             msg = "Reference should be provided in a pandas dataframe format"
             raise RequestError(msg)
