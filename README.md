@@ -12,7 +12,7 @@ Requires [poetry](https://python-poetry.org/). See `pyproject.toml` for Python p
 To install and use the this package with poetry on a \*nix based system,
 issue the following commands:
 
-1. `git clone https://github.com/industrial-optimization-group/desdeo-mcdm`
+1. `git clone https://github.com/industrial-optimization-group/desdeo-tools`
 2. `cd desdeo-tools`
 3. `poetry init`
 4. `poetry install`
