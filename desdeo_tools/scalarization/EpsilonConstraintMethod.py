@@ -16,7 +16,7 @@ class EpsilonConstraintMethod:
     """
 
     def __init__(
-            self, objective_vector: np.ndarray, to_be_minimized: int, epsilons: np.ndarray,
+            self, obj_fun: Callable, objective_vector: np.ndarray, to_be_minimized: int, epsilons: np.ndarray,
             constraints: Optional[Callable]
     ):
         """
@@ -28,12 +28,13 @@ class EpsilonConstraintMethod:
             epsilons (np.ndarray): Upper bounds chosen by the decison maker.
             constraints (Optional[Callable]): Other constraints, if existing.
         """
+        self.obj_fun = obj_fun
         self.objective_vector = objective_vector
         self._to_be_minimized = to_be_minimized
         self.epsilons = epsilons
         self.constraints = constraints
 
-    def cons(self, xs) -> np.ndarray:
+    def get_constraints(self, xs) -> np.ndarray:
         """
         Returns values of constraints
         Args:
@@ -47,9 +48,11 @@ class EpsilonConstraintMethod:
             c = self.constraints(xs)
         else:
             c = []
-        # remove objective to be minimized
+        # epsilon function values with current decision variables
         eps_functions = np.array(
-            [self.objective_vector[0][i] for i in range(len(self.objective_vector[0])) if i != self._to_be_minimized])
+            [self.obj_fun(xs)[0][i] for i in range(len(self.objective_vector[0])) if i != self._to_be_minimized])
+
+        # epsilon constraint values
         e = np.array([-(f - v) for f, v in zip(eps_functions, self.epsilons)])
         return np.concatenate([c, e])
 
@@ -99,19 +102,19 @@ if __name__ == "__main__":
 
 
     obj_min = 0
-    epsil = np.array([-1000])
-    x0 = np.array([2.6, 11])
+    epsil = np.array([-2000])
+    x0 = np.array([10, 11])
     o = objective(x0)
     xs = np.atleast_2d(x0)
     cons = -(xs[:, 0] / xs[:, 1] - 1.618)
-    eps = EpsilonConstraintMethod(o, obj_min, epsil, con_golden)
-    c = eps.cons(x0)
+    eps = EpsilonConstraintMethod(objective, o, obj_min, epsil, con_golden)
+    c = eps.get_constraints(x0)
     print(c)
 
     scalarized_objective = Scalarizer(objective, eps)
     print(scalarized_objective)
 
-    minimizer = ScalarMinimizer(scalarized_objective, bounds, constraint_evaluator=eps.cons, method=None)
+    minimizer = ScalarMinimizer(scalarized_objective, bounds, constraint_evaluator=eps.get_constraints, method=None)
 
     res = minimizer.minimize(x0)
     final_r, final_h = res["x"][0], res["x"][1]
