@@ -3,7 +3,7 @@ from numpy.core._multiarray_umath import ndarray
 
 from desdeo_tools.scalarization import Scalarizer
 from desdeo_tools.solver.ScalarSolver import ScalarMinimizer
-from typing import Optional, Callable
+from typing import Optional, Callable, Union
 
 
 class ECMError(Exception):
@@ -42,15 +42,17 @@ class EpsilonConstraintMethod:
         Returns values of constraints with given decison variables.
         Args:
             xs (np.ndarray): Decision variables.
-
         Returns: Values of constraint functions (both "original" constraints as well as epsilon constraints) in a vector.
-
         """
         xs = np.atleast_2d(xs)
 
         # evaluate epsilon constraint function "left-side" values with given decision variables
         epsilon_left_side = np.array(
-            [self.objectives(xs)[0][i] for i, _ in enumerate(self.objectives(xs)[0]) if i != self._to_be_minimized])
+            [val
+             for nrow, row in enumerate(self.objectives(xs))
+             for ival, val in enumerate(row)
+             if ival != self._to_be_minimized
+             ])
 
         if len(epsilon_left_side) != len(self.epsilons):
             msg = ("The lenght of the epsilons array ({}) must match the total number of objectives - 1 ({})."
@@ -58,24 +60,26 @@ class EpsilonConstraintMethod:
             raise ECMError(msg)
 
         # evaluate values of epsilon constraint functions
-        e: ndarray = np.array([-(f - v) for f, v in zip(epsilon_left_side, self.epsilons)])
+        e: np.ndarray = np.array([-(f - v) for f, v in zip(epsilon_left_side, self.epsilons)])
 
         if self.constraints:
             c = self.constraints(xs)
-            return np.concatenate([c, e])
+            return np.concatenate([c, e], axis=None)  # does it work with multiple constraints?
         else:
             return e
 
-    def __call__(self, objective_vector: np.ndarray) -> float:
+    def __call__(self, objective_vector: np.ndarray) -> Union[float, np.ndarray]:
         """
         Returns the value of objective function to be minimized.
         Args:
             objective_vector (np.ndarray): Values of objective functions.
 
         Returns: Value of objective function to be minimized.
-
         """
-        return objective_vector[0][self._to_be_minimized]
+        if np.shape(objective_vector)[0] > 1:  # more rows than one
+            return np.array([objective_vector[i][self._to_be_minimized] for i, _ in enumerate(objective_vector)])
+        else:
+            return objective_vector[0][self._to_be_minimized]
 
 
 # Testing the method
