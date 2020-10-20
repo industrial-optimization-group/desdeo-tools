@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core._multiarray_umath import ndarray
 
 from desdeo_tools.scalarization import Scalarizer
 from desdeo_tools.solver.ScalarSolver import ScalarMinimizer
@@ -48,21 +47,19 @@ class EpsilonConstraintMethod:
 
         # evaluate epsilon constraint function "left-side" values with given decision variables
         epsilon_left_side = np.array(
-            [val
-             for nrow, row in enumerate(self.objectives(xs))
-             for ival, val in enumerate(row)
-             if ival != self._to_be_minimized
+            [val for nrow, row in enumerate(self.objectives(xs))
+             for ival, val in enumerate(row) if ival != self._to_be_minimized
              ])
 
         if len(epsilon_left_side) != len(self.epsilons):
             msg = ("The lenght of the epsilons array ({}) must match the total number of objectives - 1 ({})."
-                   ).format(len(self.epsilons), len(self.objectives(xs)[0]) - 1)
+                   ).format(len(self.epsilons), len(self.objectives(xs)) - 1)
             raise ECMError(msg)
 
         # evaluate values of epsilon constraint functions
         e: np.ndarray = np.array([-(f - v) for f, v in zip(epsilon_left_side, self.epsilons)])
 
-        if self.constraints:
+        if self.constraints(xs) is not None:
             c = self.constraints(xs)
             return np.concatenate([c, e], axis=None)  # does it work with multiple constraints?
         else:
