@@ -115,7 +115,7 @@ class ReferencePointASF(ASFBase):
     """
 
     def __init__(
-        self, preferential_factors: np.ndarray, nadir: np.ndarray, utopian_point: np.ndarray, rho: float = 0.1
+        self, preferential_factors: np.ndarray, nadir: np.ndarray, utopian_point: np.ndarray, rho: float = 1e-6
     ):
         self.preferential_factors = preferential_factors
         self.nadir = nadir
