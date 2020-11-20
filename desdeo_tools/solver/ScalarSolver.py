@@ -118,7 +118,7 @@ class ScalarMinimizer:
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             scipy_de_method = ScalarMethod(
-                lambda x, _, **y: differential_evolution(x, **y), method_args={"polish": False}
+                lambda x, _, **y: differential_evolution(x, **y), method_args={"polish": True}
             )
             self._method = scipy_de_method
 
