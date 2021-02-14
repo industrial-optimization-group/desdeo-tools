@@ -1,21 +1,21 @@
 [tool.poetry]
 name = "desdeo-tools"
-version = "0.2.7"
+version = "0.3.0"
 description = "Generic tools and design language used in the DESDEO framework"
-authors = ["Bhupinder Saini", "Giovanni Misitano"]
+authors = ["Bhupinder Saini", "Giovanni Misitano", "Antti Luopajärvi"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
 numpy = "^1.17"
-pandas = "^0.25.3"
+pandas = "^1.0"
 scipy = "^1.2"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
 pylint = "^2.4"
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
-jupyter = "^1.0"
+# jupyter = "^1.0"
 matplotlib = "^3.2.1"
 pytest = "^5.4.1"
 rope = "^0.16.0"

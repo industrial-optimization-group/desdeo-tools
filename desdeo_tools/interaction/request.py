@@ -2,7 +2,11 @@ from typing import Callable, List, Union
 
 import pandas as pd
 
-from desdeo_tools.interaction.validators import validate_ref_point_with_ideal_and_nadir
+from desdeo_tools.interaction.validators import (
+    validate_ref_point_with_ideal_and_nadir,
+    validate_specified_solutions,
+    validate_bounds,
+)
 from desdeo_tools.utils.frozen import FrozenClass
 
 
@@ -17,6 +21,7 @@ class BaseRequest(FrozenClass):
     various methods. This class is frozen, so no variables other than that
     already defined in current __init__ can be defined in derived classes.
     """
+
     def __init__(
         self,
         request_type: str,
@@ -49,6 +54,9 @@ class BaseRequest(FrozenClass):
             "simple_plot",
             "reference_point_preference",
             "classification_preference",
+            "preferred_solution_preference",
+            "non_preferred_solution_preference",
+            "bound_preference",
         ]
         priority_types = ["no_interaction", "not_required", "recommended", "required"]
         if request_type not in acceptable_types:
@@ -101,7 +109,8 @@ class PrintRequest(BaseRequest):
     of a string, or multiple messages in a list of strings. The method of
     displaying these messages is left to the UI.
     """
-    def __init__(self, message: Union[str, List[str]], request_id: int=None):
+
+    def __init__(self, message: Union[str, List[str]], request_id: int = None):
         """Initialise the PrintRequest.
 
         Args:
@@ -150,6 +159,7 @@ class SimplePlotRequest(BaseRequest):
     "message" (Union[str, List[str]]): A message or list of messages to be
     displayed to the decision maker.
     """
+
     def __init__(
         self,
         data: pd.DataFrame,
@@ -259,6 +269,7 @@ class ReferencePointPreference(BaseRequest):
     validated according to the needs of the method that initializes this class
     object, before the reference point can be accepted in the response variable.
     """
+
     def __init__(
         self,
         dimensions_data: pd.DataFrame,
@@ -372,3 +383,212 @@ class ReferencePointPreference(BaseRequest):
             reference_point=value, dimensions_data=self.content["dimensions_data"]
         )
         self._response = value
+
+
+class PreferredSolutionPreference(BaseRequest):
+    """
+    Methods can use this class to ask the Decision maker to provide their preferences in form of preferred solution(s).
+    """
+
+    def __init__(
+        self,
+        n_solutions: int,
+        message: str = None,
+        interaction_priority: str = "required",
+        preference_validator: Callable = None,
+        request_id: int = None,
+    ):
+        """
+        Initialize preference-class with information about problem.
+
+        Args:
+            n_solutions (int): Number of solutions in total.
+            message (str): Message to be displayed to the Decision maker.
+            interaction_priority (str): Level of priority.
+            preference_validator (Callable): Function that validates the Decision maker's preferences.
+            request_id (int): Identification number of request.
+        """
+
+        self._n_solutions = n_solutions
+
+        if message is None:
+            message = (
+                "Please specify preferred solution(s) by their index as 'preferred_solutions_indices', so that the "
+                "indices start at 0. Please specify the index/indices in a list."
+            )
+
+        if preference_validator is None:
+            preference_validator = validate_specified_solutions
+
+        if not isinstance(message, str):
+            if not isinstance(message, list):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Message provided is of type: {type(message)}"
+                )
+                raise RequestError(msg)
+            elif not all(isinstance(x, str) for x in message):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Some elements of the list are not strings"
+                )
+                raise RequestError(msg)
+        content = {"message": message, "validator": preference_validator}
+        super().__init__(
+            request_type="preferred_solution_preference",
+            interaction_priority=interaction_priority,
+            content=content,
+            request_id=request_id,
+        )
+
+    @BaseRequest.response.setter
+    def response(self, value):
+        # validate the response
+        self.content["validator"](indices=value, n_solutions=self._n_solutions)
+        self._response = value
+
+
+class NonPreferredSolutionPreference(BaseRequest):
+    """
+    Methods can use this class to ask the Decision maker to provide their preferences in form of non-preferred
+    solution(s).
+    """
+
+    def __init__(
+        self,
+        n_solutions: int,
+        message: str = None,
+        interaction_priority: str = "required",
+        preference_validator: Callable = None,
+        request_id: int = None,
+    ):
+        """
+        Initialize preference-class with information about problem.
+
+        Args:
+            n_solutions (int): Number of solutions in total.
+            message (str): Message to be displayed to the Decision maker.
+            interaction_priority (str): Level of priority.
+            preference_validator (Callable): Function that validates the Decision maker's preferences.
+            request_id (int): Identification number of request.
+        """
+
+        self._n_solutions = n_solutions
+
+        if message is None:
+            message = (
+                "Please specify non-preferred solution(s) by their index as 'non-preferred_solutions_indices', so that "
+                "the indices start at 0. Please specify the index/indices in a list."
+            )
+
+        if preference_validator is None:
+            preference_validator = validate_specified_solutions
+
+        if not isinstance(message, str):
+            if not isinstance(message, list):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Message provided is of type: {type(message)}"
+                )
+                raise RequestError(msg)
+            elif not all(isinstance(x, str) for x in message):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Some elements of the list are not strings"
+                )
+                raise RequestError(msg)
+        content = {"message": message, "validator": preference_validator}
+        super().__init__(
+            request_type="non_preferred_solution_preference",
+            interaction_priority=interaction_priority,
+            content=content,
+            request_id=request_id,
+        )
+
+    @BaseRequest.response.setter
+    def response(self, value):
+        # validate the response
+        self.content["validator"](indices=value, n_solutions=self._n_solutions)
+        self._response = value
+
+
+class BoundPreference(BaseRequest):
+    """
+    Methods can use this class to ask the Decision maker to provide their preferences in form of preferred lower and
+    upper bounds for objective values.
+    """
+
+    def __init__(
+        self,
+        dimensions_data: pd.DataFrame,
+        n_objectives: int,
+        message: str = None,
+        interaction_priority: str = "required",
+        preference_validator: Callable = None,
+        request_id: int = None,
+    ):
+        """
+        Initialize preference-class with information about problem.
+
+        Args:
+            dimensions_data (pd.DataFrame): DataFrame including information whether an objective is minimized or
+            maximized, for each objective. In addition, includes ideal and nadir vectors.
+            n_objectives (int): Number of objectives in problem.
+            message (str): Message to be displayed to the Decision maker.
+            interaction_priority (str): Level of priority.
+            preference_validator (Callable): Function that validates the Decision maker's preferences.
+            request_id (int): Identification number of request.
+        """
+
+        self._n_objectives = n_objectives
+
+        if message is None:
+            message = (
+                "Please specify desired lower and upper bound for each objective as 'bounds', starting from the first "
+                "objective and ending with the last one. Please specify the bounds as a numpy array containing lists, "
+                "so that the first item of list is the lower bound and the second the upper bound, for each objective."
+                "For example: numpy.array([[1, 2], [2, 5], [0, 3.5]]), for problem with three objectives."
+                "Ideal vector: {}\nNadir vector: {}.".format(
+                    dimensions_data.loc["ideal"].values.tolist(),
+                    dimensions_data.loc["nadir"].values.tolist(),
+                )
+            )
+
+        if preference_validator is None:
+            preference_validator = validate_bounds
+
+        if not isinstance(message, str):
+            if not isinstance(message, list):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Message provided is of type: {type(message)}"
+                )
+                raise RequestError(msg)
+            elif not all(isinstance(x, str) for x in message):
+                msg = (
+                    f"Message/s to be printed should be string or list of strings"
+                    f"Some elements of the list are not strings"
+                )
+                raise RequestError(msg)
+        content = {
+            "dimensions_data": dimensions_data,
+            "message": message,
+            "validator": preference_validator,
+        }
+        super().__init__(
+            request_type="bound_preference",
+            interaction_priority=interaction_priority,
+            content=content,
+            request_id=request_id,
+        )
+
+    @BaseRequest.response.setter
+    def response(self, value):
+        # validate the response
+        self.content["validator"](
+            dimensions_data=self.content["dimensions_data"],
+            bounds=value,
+            n_objectives=self._n_objectives,
+        )
+        self._response = value
+
