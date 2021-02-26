@@ -14,6 +14,9 @@ __all__ = [
     "StomASF",
     "DiscreteScalarizer",
     "Scalarizer",
+    "Tchebycheff",
+    "WeightedSum",
+    "PBI",
 ]
 
 from desdeo_tools.scalarization.ASF import (
@@ -25,3 +28,4 @@ from desdeo_tools.scalarization.ASF import (
     StomASF,
 )
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
+from desdeo_tools.scalarization.MOEADSF import Tchebycheff, WeightedSum, PBI
