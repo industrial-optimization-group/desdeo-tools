@@ -71,9 +71,9 @@ def validate_ref_point_dimensions(
 
 def validate_ref_point_data_type(reference_point: pd.DataFrame):
     for dtype in reference_point.dtypes:
-        if not ((dtype == int) or (dtype == float)):
+        if not pd.api.types.is_numeric_dtype(dtype):
             msg = (
-                f"Type of data in reference point dataframe should be int or float.\n"
+                f"Type of data in reference point dataframe should be numeric.\n"
                 f"Provided datatype: {dtype}"
             )
             raise ValidationError(msg)
