@@ -38,7 +38,7 @@ class GLIDEBase:
         self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
     ):
 
-        self.num_additional_constraints = 0
+        self.has_additional_constraints = False
         self.utopian = utopian
         self.nadir = nadir
         self.rho = rho
@@ -84,7 +84,7 @@ class GLIDEBase:
         Returns:
             Union[None, np.ndarray]: [description]
         """
-        if self.num_additional_constraints == 0:
+        if not self.has_additional_constraints:
             return None
 
         self.preference = preference
@@ -144,11 +144,15 @@ class reference_point_method_GLIDE(GLIDEBase):
         self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
     ):
         super().__init__(utopian=utopian, nadir=nadir, rho=rho)
-        self.num_additional_constraints = 0
-        self.__I_alpha = np.full_like(utopian, dtype=bool, fill_value=True).flatten()
-        self.__I_epsilon = np.full_like(utopian, dtype=bool, fill_value=False).flatten()
+        self.has_additional_constraints = False
+        self.__I_alpha = np.full_like(
+            utopian, dtype=np.bool_, fill_value=True
+        ).flatten()
+        self.__I_epsilon = np.full_like(
+            utopian, dtype=np.bool_, fill_value=False
+        ).flatten()
         self.__w = 1
-        self.__mu = 1 / nadir - utopian
+        self.__mu = 1 / (nadir - utopian)
 
     @property
     def I_epsilon(self):
@@ -168,7 +172,7 @@ class reference_point_method_GLIDE(GLIDEBase):
 
     @property
     def q(self):
-        return self.preference["reference_point"]
+        return self.preference["reference point"]
 
     @property
     def epsilon(self):
@@ -185,3 +189,391 @@ class reference_point_method_GLIDE(GLIDEBase):
         msg = "This part of the code should not be reached. Contact maintaner."
         raise GLIDEError(msg)
 
+
+class GUESS_GLIDE(GLIDEBase):
+    def __init__(
+        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+    ):
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        self.has_additional_constraints = False
+        self.__I_alpha = np.full_like(
+            utopian, dtype=np.bool_, fill_value=True
+        ).flatten()
+        self.__I_epsilon = np.full_like(
+            utopian, dtype=np.bool_, fill_value=False
+        ).flatten()
+        self.__w = 0
+
+    @property
+    def I_epsilon(self):
+        return self.__I_epsilon
+
+    @property
+    def I_alpha(self):
+        return self.__I_alpha
+
+    @property
+    def mu(self):
+        return 1 / (self.nadir - self.preference["reference point"])
+
+    @property
+    def w(self):
+        return self.__w
+
+    @property
+    def q(self):
+        return self.preference["reference point"]
+
+    @property
+    def epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def s_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def delta_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+
+class AUG_GUESS_GLIDE(GUESS_GLIDE):
+    def __init__(
+        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+    ):
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        self.has_additional_constraints = False
+        self.__w = 1
+
+
+class NIMBUS_GLIDE(GLIDEBase):
+    def __init__(
+        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+    ):
+        super.__init__(utopian=utopian, nadir=nadir, rho=rho)
+
+        self.__mu = self.__w = 1 / (self.nadir - self.utopian)
+
+        self.has_additional_constraints = True
+
+    @property
+    def improve_unconstrained(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == "<")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def improve_constrained(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == "<=")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def satisfactory(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == "=")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def relax_constrained(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == ">=")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def relax_unconstrained(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == "0")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def I_alpha(self):
+        return self.improve_unconstrained + self.improve_constrained
+
+    @property
+    def I_epsilon(self):
+        return (
+            self.improve_unconstrained
+            + self.improve_constrained
+            + self.satisfactory
+            + self.relax_constrained
+        )
+
+    @property
+    def w(self):
+        # This was in the paper
+        return self.__w
+        # This is what I think it should be. There may be division by zero errors here.
+        """return (self.objective_vector / (self.objective_vector - self.q)) / (
+            self.nadir - self.utopian
+        )"""
+
+    @property
+    def mu(self):
+        return self.__mu
+
+    @property
+    def q(self):
+        q = np.full_like(self.utopian, fill_value=np.nan)
+        q[self.improve_unconstrained] = self.utopian[self.improve_unconstrained]
+        q[self.improve_constrained] = self.preference["levels"][
+            self.improve_constrained
+        ]
+        return q
+
+    @property
+    def epsilon(self):
+        e = np.full_like(self.utopian, fill_value=np.nan)
+
+        case1 = (
+            self.improve_constrained + self.improve_unconstrained + self.satisfactory
+        )
+        case2 = self.relax_constrained
+
+        e[case1] = self.preference["current objective"][case1]
+        e[case2] = self.preference["levels"][case2]
+        return e
+
+    @property
+    def s_epsilon(self):
+        return 0
+
+    @property
+    def delta_epsilon(self):
+        return np.zeros_like(self.utopian)
+
+
+class STEP_GLIDE(GLIDEBase):
+    def __init__(
+        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+    ):
+        super.__init__(utopian=utopian, nadir=nadir, rho=rho)
+        # TODO Check if formula is correct
+        self.__mu = (self.nadir - self.utopian) / np.max(
+            np.vstack((utopian, nadir)), axis=0
+        )
+        self.__w = 0
+
+        self.I_epsilon = np.full_like(self.utopian, dtype=np.bool_, fill_value=True)
+
+        self.has_additional_constraints = True
+
+    @property
+    def improve_constrained(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == "<=")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def satisfactory(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == "=")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def relax_constrained(self):
+        indices = np.full_like(self.utopian, dtype=np.bool_, fill_value=False)
+        relevant = np.where(np.array(self.preference["classifications"]) == ">=")[0]
+        indices[relevant] = True
+        return indices
+
+    @property
+    def I_alpha(self):
+        return self.improve_constrained
+
+    @property
+    def w(self):
+        # This was in the paper
+        return self.__w
+
+    @property
+    def mu(self):
+        return self.__mu
+
+    @property
+    def q(self):
+        q = np.full_like(self.utopian, fill_value=np.nan)
+        q[self.improve_constrained] = self.utopian[self.improve_constrained]
+        return q
+
+    @property
+    def epsilon(self):
+        e = np.full_like(self.utopian, fill_value=np.nan)
+
+        case1 = self.improve_constrained + self.satisfactory
+        case2 = self.relax_constrained
+
+        e[case1] = self.preference["current objective"][case1]
+        e[case2] = self.preference["levels"][case2]
+        return e
+
+    @property
+    def s_epsilon(self):
+        return 0
+
+    @property
+    def delta_epsilon(self):
+        return np.zeros_like(self.utopian)
+
+
+class STOM_GLIDE(GLIDEBase):
+    def __init__(self, utopian: np.ndarray = None, rho: float = 1e-6):
+        super().__init__(utopian=utopian, nadir=None, rho=rho)
+        self.has_additional_constraints = False
+        self.__I_alpha = np.full_like(
+            utopian, dtype=np.bool_, fill_value=True
+        ).flatten()
+        self.__I_epsilon = np.full_like(
+            utopian, dtype=np.bool_, fill_value=False
+        ).flatten()
+        self.__w = 0
+
+    @property
+    def I_epsilon(self):
+        return self.__I_epsilon
+
+    @property
+    def I_alpha(self):
+        return self.__I_alpha
+
+    @property
+    def mu(self):
+        return 1 / (self.preference["reference point"] - self.utopian)
+
+    @property
+    def w(self):
+        return self.__w
+
+    @property
+    def q(self):
+        return self.utopian
+
+    @property
+    def epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def s_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def delta_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+
+class AUG_STOM_GLIDE(STOM_GLIDE):
+    def __init__(self, utopian: np.ndarray = None, rho: float = 1e-6):
+        super().__init__(utopian=utopian, rho=rho)
+        self.has_additional_constraints = False
+        self.__w = 1
+
+
+class Tchebycheff_GLIDE(GLIDEBase):
+    def __init__(self, utopian: np.ndarray = None, rho: float = 1e-6):
+        super().__init__(utopian=utopian, nadir=None, rho=rho)
+        self.has_additional_constraints = False
+        self.__I_alpha = np.full_like(
+            utopian, dtype=np.bool_, fill_value=True
+        ).flatten()
+        self.__I_epsilon = np.full_like(
+            utopian, dtype=np.bool_, fill_value=False
+        ).flatten()
+        self.__w = 1
+
+    @property
+    def I_epsilon(self):
+        return self.__I_epsilon
+
+    @property
+    def I_alpha(self):
+        return self.__I_alpha
+
+    @property
+    def mu(self):
+        return self.preference["mu"]
+
+    @property
+    def w(self):
+        return self.__w
+
+    @property
+    def q(self):
+        return self.utopian
+
+    @property
+    def epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def s_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def delta_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+
+class PROJECT_GLIDE(GLIDEBase):
+    def __init__(self, current_objective_vector: np.ndarray, rho: float = 1e-6):
+        super().__init__(utopian=None, nadir=None, rho=rho)
+        self.current_objective_vector = current_objective_vector
+        self.has_additional_constraints = False
+        self.__I_alpha = np.full_like(
+            current_objective_vector, dtype=np.bool_, fill_value=True
+        ).flatten()
+        self.__I_epsilon = np.full_like(
+            current_objective_vector, dtype=np.bool_, fill_value=False
+        ).flatten()
+        self.__w = 0
+
+    @property
+    def I_epsilon(self):
+        return self.__I_epsilon
+
+    @property
+    def I_alpha(self):
+        return self.__I_alpha
+
+    @property
+    def mu(self):
+        # TODO Check if the following formula is correct
+        return 1 / self.preference["reference point"] - self.current_objective_vector
+
+    @property
+    def w(self):
+        return self.__w
+
+    @property
+    def q(self):
+        return self.utopian
+
+    @property
+    def epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def s_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
+
+    @property
+    def delta_epsilon(self):
+        msg = "This part of the code should not be reached. Contact maintaner."
+        raise GLIDEError(msg)
