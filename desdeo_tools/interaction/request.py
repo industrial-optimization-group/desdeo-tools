@@ -7,7 +7,7 @@ from desdeo_tools.interaction.validators import (
     validate_specified_solutions,
     validate_bounds,
 )
-from desdeo_tools.utils.frozen import FrozenClass
+from desdeo_tools.utilities.frozen import FrozenClass
 
 
 class RequestError(Exception):
@@ -16,7 +16,7 @@ class RequestError(Exception):
 
 
 class BaseRequest(FrozenClass):
-    """The base class for all Request classes. Request classes are to be used 
+    """The base class for all Request classes. Request classes are to be used
     to handle interaction between the user and the methods, as well as within
     various methods. This class is frozen, so no variables other than that
     already defined in current __init__ can be defined in derived classes.
@@ -133,8 +133,8 @@ class PrintRequest(BaseRequest):
                 raise RequestError(msg)
             elif not all(isinstance(x, str) for x in message):
                 msg = (
-                    f"Message/s to be printed should be string or list of strings"
-                    f"Some elements of the list are not strings"
+                    "Message/s to be printed should be string or list of strings"
+                    "Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
         super().__init__(
@@ -176,7 +176,7 @@ class SimplePlotRequest(BaseRequest):
             displayed to the decision maker.
             dimensions_data (pd.DataFrame, optional): Data used to used to scale
             the data to be plotted. Defaults to None.
-            chart_title (str, optional): A recommended title for the 
+            chart_title (str, optional): A recommended title for the
             visualization. Defaults to None.
             request_id ([type], optional): A unique identifier. Defaults to None.
 
@@ -245,8 +245,8 @@ class SimplePlotRequest(BaseRequest):
                 raise RequestError(msg)
             elif not all(isinstance(x, str) for x in message):
                 msg = (
-                    f"Message/s to be printed should be string or list of strings"
-                    f"Some elements of the list are not strings"
+                    "Message/s to be printed should be string or list of strings"
+                    "Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
         content = {
@@ -348,8 +348,8 @@ class ReferencePointPreference(BaseRequest):
                 raise RequestError(msg)
             elif not all(isinstance(x, str) for x in message):
                 msg = (
-                    f"Message/s to be printed should be string or list of strings"
-                    f"Some elements of the list are not strings"
+                    "Message/s to be printed should be string or list of strings"
+                    "Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
         content = {
@@ -429,8 +429,8 @@ class PreferredSolutionPreference(BaseRequest):
                 raise RequestError(msg)
             elif not all(isinstance(x, str) for x in message):
                 msg = (
-                    f"Message/s to be printed should be string or list of strings"
-                    f"Some elements of the list are not strings"
+                    "Message/s to be printed should be string or list of strings"
+                    "Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
         content = {"message": message, "validator": preference_validator}
@@ -493,8 +493,8 @@ class NonPreferredSolutionPreference(BaseRequest):
                 raise RequestError(msg)
             elif not all(isinstance(x, str) for x in message):
                 msg = (
-                    f"Message/s to be printed should be string or list of strings"
-                    f"Some elements of the list are not strings"
+                    "Message/s to be printed should be string or list of strings"
+                    "Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
         content = {"message": message, "validator": preference_validator}
@@ -566,8 +566,8 @@ class BoundPreference(BaseRequest):
                 raise RequestError(msg)
             elif not all(isinstance(x, str) for x in message):
                 msg = (
-                    f"Message/s to be printed should be string or list of strings"
-                    f"Some elements of the list are not strings"
+                    "Message/s to be printed should be string or list of strings"
+                    "Some elements of the list are not strings"
                 )
                 raise RequestError(msg)
         content = {
@@ -591,4 +591,3 @@ class BoundPreference(BaseRequest):
             n_objectives=self._n_objectives,
         )
         self._response = value
-

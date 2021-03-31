@@ -6,10 +6,11 @@ authors = ["Bhupinder Saini", "Giovanni Misitano", "Antti Luopajärvi"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.7, <3.10"
 numpy = "^1.17"
 pandas = "^1.0"
 scipy = "^1.2"
+numba = "^0.53.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
