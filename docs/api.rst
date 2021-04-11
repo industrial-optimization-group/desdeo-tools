@@ -7,5 +7,6 @@ API Documentation
 
 .. automodapi:: desdeo_tools.solver
 
+.. automodapi:: desdeo_tools.utilities
 
 
