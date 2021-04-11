@@ -1,6 +1,5 @@
 import abc
 from abc import abstractmethod
-from os import path
 from typing import List, Union
 
 import numpy as np
