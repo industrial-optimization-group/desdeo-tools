@@ -4,9 +4,8 @@
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
-from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
-
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
+from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
 
 class ScalarSolverException(Exception):
@@ -209,14 +208,20 @@ class DiscreteMinimizer:
             computed with the given scalarizer.
         """
         if self._constraint_evaluator is None:
-            return np.nanargmin(self._scalarizer(vectors))
+            res = self._scalarizer(vectors)
+            min_value = np.nanmin(res)
+            min_vector = vectors[np.nanargmin(res)]
+            return {"x": min_vector, "fun": min_value, "success": True}
         else:
             bad_con_mask = ~self._constraint_evaluator(vectors)
             if np.all(bad_con_mask):
                 raise ScalarSolverException("None of the supplied vectors adhere to the given " "constraint function.")
             tmp = np.copy(vectors)
             tmp[bad_con_mask] = np.nan
-            return np.nanargmin(self._scalarizer(tmp))
+            res = self._scalarizer(tmp)
+            min_value = np.nanmin(res)
+            min_vector = vectors[np.nanargmin(res)]
+            return {"x": min_vector, "fun": min_value, "success": True}
 
 
 if __name__ == "__main__":
@@ -240,4 +245,4 @@ if __name__ == "__main__":
     print(asf(non_dominated_points, reference_point=z))
 
     res = dminimizer.minimize(non_dominated_points)
-    print(non_dominated_points[res])
+    print("res", res)
