@@ -1,7 +1,7 @@
 """Implements methods for solving scalar valued functions.
 
 """
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Union
 
 import numpy as np
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
@@ -204,8 +204,9 @@ class DiscreteMinimizer:
             given constraints.
         
         Returns:
-            int: The index of the vector in vectors which minimizes the value
-            computed with the given scalarizer.
+            Dict: A dictionary with at least the following entries: 'x' indicating the optimal
+            variables found, 'fun' the optimal value of the optimized function, and 'success' a boolean
+            indicating whether the optimizaton was conducted successfully.
         """
         if self._constraint_evaluator is None:
             res = self._scalarizer(vectors)
