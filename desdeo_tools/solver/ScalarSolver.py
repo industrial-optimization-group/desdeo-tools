@@ -190,7 +190,7 @@ class DiscreteMinimizer:
         self._scalarizer = discrete_scalarizer
         self._constraint_evaluator = constraint_evaluator
 
-    def minimize(self, vectors: np.ndarray) -> int:
+    def minimize(self, vectors: np.ndarray) -> dict:
         """Find the index of the element in vectors which minimizes the
         scalar value returned by the scalarizer. If multiple minimum values
         are found, returns the index of the first occurrence.
@@ -211,8 +211,8 @@ class DiscreteMinimizer:
         if self._constraint_evaluator is None:
             res = self._scalarizer(vectors)
             min_value = np.nanmin(res)
-            min_vector = vectors[np.nanargmin(res)]
-            return {"x": min_vector, "fun": min_value, "success": True}
+            min_index = np.nanargmin(res)
+            return {"x": min_index, "fun": min_value, "success": True}
         else:
             bad_con_mask = ~self._constraint_evaluator(vectors)
             if np.all(bad_con_mask):
@@ -221,8 +221,8 @@ class DiscreteMinimizer:
             tmp[bad_con_mask] = np.nan
             res = self._scalarizer(tmp)
             min_value = np.nanmin(res)
-            min_vector = vectors[np.nanargmin(res)]
-            return {"x": min_vector, "fun": min_value, "success": True}
+            min_index = np.nanargmin(res)
+            return {"x": min_index, "fun": min_value, "success": True}
 
 
 if __name__ == "__main__":
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         [[0.2, 0.4, 0.6, 0.8], [0.4, 0.2, 0.6, 0.8], [0.6, 0.4, 0.2, 0.8], [0.4, 0.8, 0.6, 0.2]]
     )
 
-    z = np.array([0.4, 0.2, 0.6, 0.8])
+    z = np.array([0.55, 0.4, 0.6, 0.8])
 
     dscalarizer._scalarizer_args = {"reference_point": z}
 
