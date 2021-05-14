@@ -11,6 +11,13 @@ it includes classes for interacting with optimization methods
 implemented in `desdeo-mcdm` and `desdeo-emo`, and tools for solving a
 representation of a Pareto optimal front for a multiobjective optimization problem.
 
+Requirements
+============
+
+* Python 3.7 (3.8 is **NOT** supported at the moment).
+* `Poetry dependency manager <https://python-poetry.org/>`__ : Only for developers.
+
+See `pyproject.toml` for Python package requirements.
 
 Installation
 ============
@@ -33,7 +40,7 @@ First, create a new virtual environment for the project. Then install the packag
 
 For developers
 --------------
-It requires `poetry <https://python-poetry.org/>`__  to be installed. See `pyproject.toml` for Python package requirements.
+
 
 Download the code or clone it with the following command:
 
