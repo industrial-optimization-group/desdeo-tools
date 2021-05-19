@@ -33,7 +33,11 @@ class GLIDEBase:
     """
 
     def __init__(
-        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
     ):
 
         self.has_additional_constraints = False
@@ -41,6 +45,7 @@ class GLIDEBase:
         self.nadir = nadir
         self.rho = rho
         self.required_keys: dict = {}
+        self.extras = kwargs
 
     def __call__(self, objective_vector: np.ndarray, preference: dict) -> np.ndarray:
         """Evaluate the scalarization function value based on objective vectors and
@@ -157,9 +162,13 @@ class reference_point_method_GLIDE(GLIDEBase):
     """
 
     def __init__(
-        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
     ):
-        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho, **kwargs)
         self.has_additional_constraints = False
         self.__I_alpha = np.full_like(
             utopian, dtype=np.bool_, fill_value=True
@@ -231,9 +240,13 @@ class GUESS_GLIDE(GLIDEBase):
     """
 
     def __init__(
-        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
     ):
-        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho, **kwargs)
         self.has_additional_constraints = False
         self.__I_alpha = np.full_like(
             utopian, dtype=np.bool_, fill_value=True
@@ -303,9 +316,13 @@ class AUG_GUESS_GLIDE(GUESS_GLIDE):
     """
 
     def __init__(
-        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
     ):
-        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho, **kwargs)
         self.__w = 1
 
 
@@ -326,9 +343,13 @@ class NIMBUS_GLIDE(GLIDEBase):
     """
 
     def __init__(
-        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
     ):
-        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho, **kwargs)
 
         self.__mu = self.__w = 1 / (self.nadir - self.utopian)
 
@@ -459,9 +480,13 @@ class STEP_GLIDE(GLIDEBase):
     """
 
     def __init__(
-        self, utopian: np.ndarray = None, nadir: np.ndarray = None, rho: float = 1e-6
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
     ):
-        super().__init__(utopian=utopian, nadir=nadir, rho=rho)
+        super().__init__(utopian=utopian, nadir=nadir, rho=rho, **kwargs)
         self.__mu = (self.nadir - self.utopian) / np.max(
             np.abs(np.vstack((utopian, nadir))), axis=0
         )
@@ -558,13 +583,19 @@ class STOM_GLIDE(GLIDEBase):
 
     Args:
         utopian (np.ndarray, optional): The utopian point. Defaults to None.
-        nadir (np.ndarray, optional): The nadir point. Defaults to None.
+        nadir (np.ndarray, optional): The nadir point. Has no effect on STOM calculation. Defaults to None.
         rho (float, optional): The augmentation term for the scalarization function.
             Defaults to 1e-6.
     """
 
-    def __init__(self, utopian: np.ndarray = None, rho: float = 1e-6):
-        super().__init__(utopian=utopian, nadir=None, rho=rho)
+    def __init__(
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
+    ):
+        super().__init__(utopian=utopian, nadir=None, rho=rho, **kwargs)
         self.has_additional_constraints = False
         self.__I_alpha = np.full_like(
             utopian, dtype=np.bool_, fill_value=True
@@ -628,13 +659,19 @@ class AUG_STOM_GLIDE(STOM_GLIDE):
 
     Args:
         utopian (np.ndarray, optional): The utopian point. Defaults to None.
-        nadir (np.ndarray, optional): The nadir point. Defaults to None.
+        nadir (np.ndarray, optional): The nadir point. Has no effect on STOM calculation. Defaults to None.
         rho (float, optional): The augmentation term for the scalarization function.
             Defaults to 1e-6.
     """
 
-    def __init__(self, utopian: np.ndarray = None, rho: float = 1e-6):
-        super().__init__(utopian=utopian, rho=rho)
+    def __init__(
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
+    ):
+        super().__init__(utopian=utopian, nadir=None, rho=rho, **kwargs)
         self.has_additional_constraints = False
         self.__w = 1
 
@@ -655,8 +692,14 @@ class Tchebycheff_GLIDE(GLIDEBase):
             Defaults to 1e-6.
     """
 
-    def __init__(self, utopian: np.ndarray = None, rho: float = 1e-6):
-        super().__init__(utopian=utopian, nadir=None, rho=rho)
+    def __init__(
+        self,
+        utopian: np.ndarray = None,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+        **kwargs
+    ):
+        super().__init__(utopian=utopian, nadir=None, rho=rho, **kwargs)
         self.has_additional_constraints = False
         self.__I_alpha = np.full_like(
             utopian, dtype=np.bool_, fill_value=True
@@ -724,8 +767,10 @@ class PROJECT_GLIDE(GLIDEBase):
             Defaults to 1e-6.
     """
 
-    def __init__(self, current_objective_vector: np.ndarray, rho: float = 1e-6):
-        super().__init__(utopian=None, nadir=None, rho=rho)
+    def __init__(
+        self, current_objective_vector: np.ndarray, rho: float = 1e-6, **kwargs
+    ):
+        super().__init__(utopian=None, nadir=None, rho=rho, **kwargs)
         self.current_objective_vector = current_objective_vector
         self.has_additional_constraints = False
         self.__I_alpha = np.full_like(
