@@ -66,19 +66,10 @@ class SimpleASF(ASFBase):
             reference_point (np.ndarray): A vector representing a reference
             point in the solution space.
 
-        Raises:
-            ASFError: The dimensions of the objective vector and reference
-            point don't match.
-
         Note:
             The shaped of objective_vector and reference_point must match.
 
         """
-        if not objective_vector.shape == reference_point.shape:
-            msg = ("The dimensions of the objective vector {} and " "reference_point {} do not match.").format(
-                objective_vector, reference_point
-            )
-            raise ASFError(msg)
 
         return np.max(np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)))
 

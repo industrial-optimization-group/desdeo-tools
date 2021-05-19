@@ -1,12 +1,11 @@
 """Implements methods for solving scalar valued functions.
 
 """
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Union
 
 import numpy as np
-from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
-
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
+from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
 
 class ScalarSolverException(Exception):
@@ -191,7 +190,7 @@ class DiscreteMinimizer:
         self._scalarizer = discrete_scalarizer
         self._constraint_evaluator = constraint_evaluator
 
-    def minimize(self, vectors: np.ndarray) -> int:
+    def minimize(self, vectors: np.ndarray) -> dict:
         """Find the index of the element in vectors which minimizes the
         scalar value returned by the scalarizer. If multiple minimum values
         are found, returns the index of the first occurrence.
@@ -205,18 +204,25 @@ class DiscreteMinimizer:
             given constraints.
         
         Returns:
-            int: The index of the vector in vectors which minimizes the value
-            computed with the given scalarizer.
+            Dict: A dictionary with at least the following entries: 'x' indicating the optimal
+            variables found, 'fun' the optimal value of the optimized function, and 'success' a boolean
+            indicating whether the optimizaton was conducted successfully.
         """
         if self._constraint_evaluator is None:
-            return np.nanargmin(self._scalarizer(vectors))
+            res = self._scalarizer(vectors)
+            min_value = np.nanmin(res)
+            min_index = np.nanargmin(res)
+            return {"x": min_index, "fun": min_value, "success": True}
         else:
             bad_con_mask = ~self._constraint_evaluator(vectors)
             if np.all(bad_con_mask):
                 raise ScalarSolverException("None of the supplied vectors adhere to the given " "constraint function.")
             tmp = np.copy(vectors)
             tmp[bad_con_mask] = np.nan
-            return np.nanargmin(self._scalarizer(tmp))
+            res = self._scalarizer(tmp)
+            min_value = np.nanmin(res)
+            min_index = np.nanargmin(res)
+            return {"x": min_index, "fun": min_value, "success": True}
 
 
 if __name__ == "__main__":
@@ -233,11 +239,11 @@ if __name__ == "__main__":
         [[0.2, 0.4, 0.6, 0.8], [0.4, 0.2, 0.6, 0.8], [0.6, 0.4, 0.2, 0.8], [0.4, 0.8, 0.6, 0.2]]
     )
 
-    z = np.array([0.4, 0.2, 0.6, 0.8])
+    z = np.array([0.55, 0.4, 0.6, 0.8])
 
     dscalarizer._scalarizer_args = {"reference_point": z}
 
     print(asf(non_dominated_points, reference_point=z))
 
     res = dminimizer.minimize(non_dominated_points)
-    print(non_dominated_points[res])
+    print("res", res)
