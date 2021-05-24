@@ -9,4 +9,6 @@ API Documentation
 
 .. automodapi:: desdeo_tools.utilities
 
+.. automodapi:: desdeo_tools.maps
+
 
