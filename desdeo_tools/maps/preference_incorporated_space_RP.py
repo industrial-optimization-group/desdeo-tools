@@ -12,7 +12,7 @@ class PreferenceIncorporatedSpaceError(Exception):
     "Raised when an error related to the preference incorporated space is encountered."
 
 
-class PreferenceIncorporatedSpace:
+class __PreferenceIncorporatedSpace:
     def __init__(
         self,
         scalarizers: List[Type[GLIDEBase]],
@@ -118,6 +118,16 @@ class PreferenceIncorporatedSpace:
 
 
 class classificationPIS:
+    """Implements the preference incorporated space mapping which uses the classification preference.
+
+    Args:
+        scalarizers (List[Type[GLIDEBase]]): Scalarizers to be used to create the PIS.
+            Should include atleast one scalarizer. NIMBUS should not be included as it is added automatically.
+        utopian (np.ndarray): The utopian point of the problem.
+        nadir (np.ndarray): The nadir point of the problem.
+        rho (float, optional): The augmentation factor used in the different scalarizers. Defaults to 1e-6.
+    """
+
     def __init__(
         self,
         scalarizers: List[Type[GLIDEBase]],
@@ -180,8 +190,11 @@ class classificationPIS:
         )
         feasible = np.all(nimbus_constraint > 0, axis=1)
 
-        nimbus_obj[~feasible] = np.inf
-        nimbus_optimal = objective_vector[nimbus_obj.argmin()]
+        if not feasible.any():
+            nimbus_optimal = objective_vector[nimbus_constraint.argmax()]
+        else:
+            nimbus_obj[~feasible] = np.inf
+            nimbus_optimal = objective_vector[nimbus_obj.argmin()]
 
         # IOPIS mapping
         mapped_vectors = np.zeros(
