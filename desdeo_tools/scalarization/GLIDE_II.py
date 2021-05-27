@@ -61,9 +61,9 @@ class GLIDEBase:
                 objective_vector.
         """
         self.preference = preference
-        self.objective_vector = objective_vector
+        self.objective_vector = np.atleast_2d(objective_vector)
 
-        f_minus_q = np.atleast_2d(objective_vector - self.q)
+        f_minus_q = self.objective_vector - self.q
         mu = np.atleast_2d(self.mu)
         I_alpha = self.I_alpha
 
@@ -94,12 +94,12 @@ class GLIDEBase:
             return None
 
         self.preference = preference
-        self.objective_vector = objective_vector
+        self.objective_vector = np.atleast_2d(objective_vector)
 
         constraints = (
             self.epsilon[self.I_epsilon]
             + self.s_epsilon * self.delta_epsilon[self.I_epsilon]
-            - objective_vector[:, self.I_epsilon]
+            - self.objective_vector[:, self.I_epsilon]
         )
 
         return constraints

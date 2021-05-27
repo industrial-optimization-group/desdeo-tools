@@ -191,7 +191,7 @@ class classificationPIS:
         feasible = np.all(nimbus_constraint > 0, axis=1)
 
         if not feasible.any():
-            nimbus_optimal = objective_vector[nimbus_constraint.argmax()]
+            nimbus_optimal = objective_vector[nimbus_constraint.max(axis=1).argmax()]
         else:
             nimbus_obj[~feasible] = np.inf
             nimbus_optimal = objective_vector[nimbus_obj.argmin()]
