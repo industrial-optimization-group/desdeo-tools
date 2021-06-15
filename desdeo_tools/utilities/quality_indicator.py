@@ -4,39 +4,41 @@ import hvwfg as hv
 
 
 @njit 
-def epsilon_indicator(reference_front: np.array, front: np.array) -> float:
+def epsilon_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
     """ Computes the additive epsilon-indicator between reference front and current approximating front.
 
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to. 
-        Should be matrix of numerics.
-        front (np.ndarray): The front that is compared. Should be vector, will be flattened to vector if matrix.
+        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+        front (np.ndarray): The front that is compared. Should be set of arrays.
 
     Returns: 
         float: The factor by which the approximating front is worse than the reference front with respect to all 
         objectives.
     """
-    max_value = 0.0
-    front = front.reshape(-1)     
+    eps = 0.0
     ref_len = len(reference_front)
     front_len = len(front)
+    # number of objectives
+    num_obj = len(front[0])
 
-    for j in range(ref_len):
-        for i in range(front_len):  
-            value = front[i] - reference_front[j][i]
-            if value > max_value:
-                max_value = value
+    for i in range(ref_len):
+        for j in range(front_len):
+            for k in range(num_obj):
+                value = front[j][k] - reference_front[i][k]
+                if value > eps:
+                    eps = value
 
-    return max_value
+    return eps
 
 
-def hypervolume_indicator(reference_front: np.array, front: np.array) -> float:
-    """ Computes the hypervolume-indicator between reference front and current approximating front.
+def hypervolume_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
+    """ Computes the hypervolume-indicator between reference front and current approximating point.
 
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to. 
-        Should be matrix of numerics.
-        front (np.ndarray): The front that is compared. Should be vector, will be flattened to vector if matrix.
+        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+        front (np.ndarray): The front that is compared. Should be 2D array.
 
     Returns: 
         float: Measures the volume of the objective space dominated by an approximation set.
@@ -45,34 +47,35 @@ def hypervolume_indicator(reference_front: np.array, front: np.array) -> float:
 
 
 if __name__=="__main__":
-
     x = np.array([[1, 0], [0.5, 0.5], [0, 1], [1.5, 0.75]])
-    ref = np.array([2.0,2.0])
+    ref = np.array([[2.0,2.0]])
     print(epsilon_indicator(x, ref))
+    print(hypervolume_indicator(x, ref))
 
     x_simple = np.array([[0.0,0.0]])
-    ref_simple = np.array([2.0,1.0])
+    ref_simple = np.array([[2.0,1.0]])
     print(epsilon_indicator(x_simple, ref_simple))
 
-    obj = np.array([[0.3, 0.6],
-                [0.4, 0.4],
-                [0.6, 0.2]])
+    obj = np.array([[0.3, 0.6,1.0],
+                [0.4, 0.4,1.2],
+                [0.6, 0.2, 0.3]])
 
     print(epsilon_indicator(obj, ref))
-    ref_hv = np.array([1.1, 1.1])
+    ref_hv = np.array([[1.1, 1.1,1.1]])
     print(hypervolume_indicator(obj, ref_hv))
-    ref_hv2 = np.array([2.0, 2.0])
+    ref_hv2 = np.array([[2.0, 2.0,2.0]])
     print(hypervolume_indicator(obj, ref_hv2))
 
-    # non-dominated reference point for HV results in a error
-    ref_hv_err = np.array([0.0,0.0])
-    print("Should be an error", hypervolume_indicator(obj, ref_hv_err))
-
     print("\n========= PERFORMANCE TEST ===========")
-    objvalues = 12029
-    objdims = 33
+    objvalues = 1000
+    objdims = 77
+    solpoints = np.random.randint(1, objdims)
+    print(solpoints)    
 
     x_hard = np.array(np.random.rand(objvalues,objdims))
-    ref_hard = np.array(np.random.rand(1, objdims))
+    #print(x_hard)
+    ref_hard = np.array(np.random.rand(solpoints, objdims))
+    #print(ref_hard)
+    ref_hard_vector = np.array(np.random.rand(1, objdims))
     print(epsilon_indicator(x_hard, ref_hard))
-    print(hypervolume_indicator(x_hard, ref_hard))
+    print(hypervolume_indicator(x_hard, ref_hard_vector))
