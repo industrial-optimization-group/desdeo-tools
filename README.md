@@ -7,6 +7,10 @@ representation of a Pareto optimal front for a multiobjective optimization.
 
 ## Installation
 
+### For regular users
+You can install the `desdeo-tools` package from the Python package index using `pip` by issuing the command `pip install desdeo-tools`.
+
+### For developers
 Requires [poetry](https://python-poetry.org/). See `pyproject.toml` for Python package requirements.
 
 To install and use the this package with poetry on a \*nix based system,
