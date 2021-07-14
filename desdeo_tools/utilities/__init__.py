@@ -9,7 +9,16 @@ __all__ = [
     "fast_non_dominated_sort",
     "fast_non_dominated_sort_indices",
     "classification_to_reference_point",
+    "epsilon_indicator", 
+    "epsilon_indicator_ndims", 
+    "hypervolume_indicator",
 ]
+
+from desdeo_tools.utilities.quality_indicator import (
+    epsilon_indicator,
+    epsilon_indicator_ndims,
+    hypervolume_indicator,
+)
 
 from desdeo_tools.utilities.fast_non_dominated_sorting import (
     dominates,
