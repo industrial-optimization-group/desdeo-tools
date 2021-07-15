@@ -3,31 +3,50 @@ import numpy as np
 import hvwfg as hv
 
 
-@njit 
+@njit()
 def epsilon_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
     """ Computes the additive epsilon-indicator between reference front and current approximating front.
 
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to. 
-        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
-        front (np.ndarray): The front that is compared. Should be set of arrays.
+        Should be an one-dimensional array.
+        front (np.ndarray): The front that is compared. Should be one-dimensional array with the same shape as 
+        reference_front.
 
     Returns: 
         float: The factor by which the approximating front is worse than the reference front with respect to all 
         objectives.
     """
     eps = 0.0
-    ref_len = len(reference_front)
-    front_len = len(front)
-    # number of objectives
-    num_obj = len(front[0])
+    for i in range(reference_front.size):
+        value = front[i] - reference_front[i]
+        if value > eps:
+            eps = value
+    return eps
 
-    for i in range(ref_len):
-        for j in range(front_len):
-            for k in range(num_obj):
-                value = front[j][k] - reference_front[i][k]
-                if value > eps:
-                    eps = value
+
+@njit()
+def epsilon_indicator_ndims(reference_front: np.ndarray, front: np.ndarray) -> float:
+    """ Computes the additive epsilon-indicator between reference front and current approximating front.
+    Args:
+        reference_front (np.ndarray): The reference front that the current front is being compared to. 
+        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+        front (np.ndarray): The front that is compared. Should be one-dimensional array.
+    Returns: 
+        float: The factor by which the approximating front is worse than the reference front with respect to all 
+        objectives.
+    """
+
+    eps = 0.0
+    ref_len = reference_front.shape[0] 
+    front_len = front.shape[0] 
+    value = 0
+
+    for i in np.arange(ref_len):
+        for j in np.arange(front_len):
+            value = front[j] - reference_front[i][j]
+            if value > eps:
+                eps = value
 
     return eps
 
