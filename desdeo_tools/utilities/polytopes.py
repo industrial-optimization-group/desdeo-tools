@@ -67,7 +67,7 @@ def polytope_dominates(
     res = linprog(coef, A_ub, b_ub, A_eq, b_eq, bounds, method = method)
 
     if not res['success']: 
-        print("unsuccessful optimization in problem 2")
+        print("unsuccessful optimization in first problem.")
     if res['fun'] < -epsilon: 
         return True
 
@@ -90,7 +90,7 @@ def polytope_dominates(
         res = linprog(coef, A_ub, b_ub, A_eq, b_eq, bounds, method = method)
  
         if not res['success']: 
-            print("unsuccessful optimization in problem 3")
+            print("unsuccessful optimization in second problem.")
         if res['fun'] < -epsilon: 
             return True
     return False
