@@ -71,7 +71,7 @@ class SimpleASF(ASFBase):
 
         """
 
-        return np.max(np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)))
+        return np.max(np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)), axis = -1)
 
 
 class ReferencePointASF(ASFBase):
