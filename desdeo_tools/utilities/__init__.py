@@ -12,7 +12,16 @@ __all__ = [
     "epsilon_indicator",
     "epsilon_indicator_ndims",
     "hypervolume_indicator",
+    "polytope_dominates",
+    "generate_polytopes",
+    "inherently_nondominated",
 ]
+
+from desdeo_tools.utilities.polytopes import (
+    polytope_dominates,
+    generate_polytopes,
+    inherently_nondominated,
+)
 
 from desdeo_tools.utilities.quality_indicator import (
     epsilon_indicator,
