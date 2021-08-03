@@ -51,6 +51,29 @@ def epsilon_indicator_ndims(reference_front: np.ndarray, front: np.ndarray) -> f
     return eps
 
 
+def preference_indicator(ref_front: np.ndarray, front: np.ndarray, ref_point: np.ndarray, delta: float) -> float:
+    """ Computes the preference-based quality indicator.
+
+    Args:
+        reference_front (np.ndarray): The reference front that the current front is being compared to.
+        Should be an one-dimensional array.
+        front (np.ndarray): The front that is compared. Should be one-dimensional array with the same shape as
+        reference_front.
+        ref_point (np.ndarray): The reference point should be same shape as front.
+        delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther 
+        from the reference point. Smaller delta means that all solutions are in smaller range around the reference
+        point.
+
+    Returns:
+        float: The factor by which the approximating front is worse than the reference front with respect to all
+        objectives taking into account the reference point given and spesifity.
+    """
+    ref_front_asf = SimpleASF(ref_front)
+    front_asf = SimpleASF(front)
+    norm = front_asf(front, reference_point=ref_point) + delta - np.min(ref_front_asf(ref_front, reference_point=ref_point))
+    return epsilon_indicator(ref_front, front)/norm
+
+
 def hypervolume_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
     """ Computes the hypervolume-indicator between reference front and current approximating point.
 
@@ -64,35 +87,3 @@ def hypervolume_indicator(reference_front: np.ndarray, front: np.ndarray) -> flo
     """
     return hv.wfg(reference_front, front.reshape(-1))
 
-
-if __name__ == "__main__":
-    x = np.array([[1, 0], [0.5, 0.5], [0, 1], [1.5, 0.75]])
-    ref = np.array([[2.0, 2.0]])
-    print(epsilon_indicator(x, ref))
-    print(hypervolume_indicator(x, ref))
-
-    x_simple = np.array([[0.0, 0.0]])
-    ref_simple = np.array([[2.0, 1.0]])
-    print(epsilon_indicator(x_simple, ref_simple))
-
-    obj = np.array([[0.3, 0.6, 1.0], [0.4, 0.4, 1.2], [0.6, 0.2, 0.3]])
-
-    print(epsilon_indicator(obj, ref))
-    ref_hv = np.array([[1.1, 1.1, 1.1]])
-    print(hypervolume_indicator(obj, ref_hv))
-    ref_hv2 = np.array([[2.0, 2.0, 2.0]])
-    print(hypervolume_indicator(obj, ref_hv2))
-
-    print("\n========= PERFORMANCE TEST ===========")
-    objvalues = 1000
-    objdims = 77
-    solpoints = np.random.randint(1, objdims)
-    print(solpoints)
-
-    x_hard = np.array(np.random.rand(objvalues, objdims))
-    # print(x_hard)
-    ref_hard = np.array(np.random.rand(solpoints, objdims))
-    # print(ref_hard)
-    ref_hard_vector = np.array(np.random.rand(1, objdims))
-    print(epsilon_indicator(x_hard, ref_hard))
-    print(hypervolume_indicator(x_hard, ref_hard_vector))
