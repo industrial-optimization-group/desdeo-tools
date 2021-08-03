@@ -51,7 +51,7 @@ def epsilon_indicator_ndims(reference_front: np.ndarray, front: np.ndarray) -> f
     return eps
 
 
-def preference_indicator(ref_front: np.ndarray, front: np.ndarray, ref_point: np.ndarray, delta: float) -> float:
+def preference_indicator(reference_front: np.ndarray, front: np.ndarray, ref_point: np.ndarray, delta: float) -> float:
     """ Computes the preference-based quality indicator.
 
     Args:
@@ -68,10 +68,10 @@ def preference_indicator(ref_front: np.ndarray, front: np.ndarray, ref_point: np
         float: The factor by which the approximating front is worse than the reference front with respect to all
         objectives taking into account the reference point given and spesifity.
     """
-    ref_front_asf = SimpleASF(ref_front)
+    ref_front_asf = SimpleASF(reference_front)
     front_asf = SimpleASF(front)
-    norm = front_asf(front, reference_point=ref_point) + delta - np.min(ref_front_asf(ref_front, reference_point=ref_point))
-    return epsilon_indicator(ref_front, front)/norm
+    norm = front_asf(front, reference_point=ref_point) + delta - np.min(ref_front_asf(reference_front, reference_point=ref_point))
+    return epsilon_indicator(reference_front, front)/norm
 
 
 def hypervolume_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
