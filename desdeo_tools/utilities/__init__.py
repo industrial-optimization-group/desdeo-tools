@@ -12,6 +12,7 @@ __all__ = [
     "epsilon_indicator",
     "epsilon_indicator_ndims",
     "hypervolume_indicator",
+    "preference_indicator",
     "polytope_dominates",
     "generate_polytopes",
     "inherently_nondominated",
@@ -27,6 +28,7 @@ from desdeo_tools.utilities.quality_indicator import (
     epsilon_indicator,
     epsilon_indicator_ndims,
     hypervolume_indicator,
+    preference_indicator,
 )
 
 from desdeo_tools.utilities.fast_non_dominated_sorting import (
