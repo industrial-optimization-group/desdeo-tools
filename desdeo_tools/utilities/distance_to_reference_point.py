@@ -15,10 +15,5 @@ def distance_to_reference_point(obj: np.ndarray, reference_point: np.ndarray) ->
         Tuple: Returns a tuple containing the closest solution to a reference point and the index of it in obj. 
     """
     asf = SimpleASF(obj)
-    d = (np.Inf, 1)
-    for i, k in enumerate(obj):
-        i_d = asf(k, reference_point=reference_point)
-        if i_d < d[0]:
-            d = i_d, i
-
-    return d
+    res = asf(obj, reference_point=reference_point)
+    return np.min(res), np.argmin(res)

@@ -1,6 +1,7 @@
 from numba import njit
 import numpy as np
 import hvwfg as hv
+from desdeo_tools.scalarization import SimpleASF
 
 
 @njit()
