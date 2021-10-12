@@ -6,9 +6,7 @@ import numpy as np
 
 
 class ASFError(Exception):
-    """Raised when an error related to the ASF classes is encountered.
-
-    """
+    """Raised when an error related to the ASF classes is encountered."""
 
 
 class ASFBase(abc.ABC):
@@ -19,7 +17,9 @@ class ASFBase(abc.ABC):
     """
 
     @abstractmethod
-    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
+    def __call__(
+        self, objective_vector: np.ndarray, reference_point: np.ndarray
+    ) -> Union[float, np.ndarray]:
         """Evaluate the ASF.
 
         Args:
@@ -57,7 +57,9 @@ class SimpleASF(ASFBase):
     def __init__(self, weights: np.ndarray):
         self.weights = weights
 
-    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
+    def __call__(
+        self, objective_vector: np.ndarray, reference_point: np.ndarray
+    ) -> Union[float, np.ndarray]:
         """Evaluate the simple order-representing ASF.
 
         Args:
@@ -71,7 +73,14 @@ class SimpleASF(ASFBase):
 
         """
 
-        return np.max(np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)), axis = -1)
+        return np.max(
+            np.where(
+                np.isnan(reference_point),
+                -np.inf,
+                self.weights * (objective_vector - reference_point),
+            ),
+            axis=-1,
+        )
 
 
 class ReferencePointASF(ASFBase):
@@ -105,14 +114,20 @@ class ReferencePointASF(ASFBase):
     """
 
     def __init__(
-        self, preferential_factors: np.ndarray, nadir: np.ndarray, utopian_point: np.ndarray, rho: float = 1e-6
+        self,
+        preferential_factors: np.ndarray,
+        nadir: np.ndarray,
+        utopian_point: np.ndarray,
+        rho: float = 1e-6,
     ):
         self.preferential_factors = preferential_factors
         self.nadir = nadir
         self.utopian_point = utopian_point
         self.rho = rho
 
-    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
+    def __call__(
+        self, objective_vector: np.ndarray, reference_point: np.ndarray
+    ) -> Union[float, np.ndarray]:
         mu = self.preferential_factors
         f = objective_vector
         q = reference_point
@@ -174,7 +189,9 @@ class MaxOfTwoASF(ASFBase):
         self.rho = rho
         self.rho_sum = rho_sum
 
-    def __call__(self, objective_vector: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
+    def __call__(
+        self, objective_vector: np.ndarray, reference_point: np.ndarray
+    ) -> Union[float, np.ndarray]:
         # assure this function works with single objective vectors
         if objective_vector.ndim == 1:
             f = objective_vector.reshape((1, -1))
@@ -225,7 +242,9 @@ class StomASF(ASFBase):
         self.rho = rho
         self.rho_sum = rho_sum
 
-    def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray) -> Union[float, np.ndarray]:
+    def __call__(
+        self, objective_vectors: np.ndarray, reference_point: np.ndarray
+    ) -> Union[float, np.ndarray]:
         # assure this function works with single objective vectors
         if objective_vectors.ndim == 1:
             f = objective_vectors.reshape((1, -1))
@@ -262,7 +281,13 @@ class PointMethodASF(ASFBase):
 
     """
 
-    def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6):
+    def __init__(
+        self,
+        nadir: np.ndarray,
+        ideal: np.ndarray,
+        rho: float = 1e-6,
+        rho_sum: float = 1e-6,
+    ):
         self.nadir = nadir
         self.ideal = ideal
         self.rho = rho
@@ -339,9 +364,32 @@ class AugmentedGuessASF(ASFBase):
         ex_mask = np.full((f.shape[1]), True, dtype=bool)
         ex_mask[self.index_to_exclude] = False
 
-        max_term = np.max((f[:, ex_mask] - nad[ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1)
-        sum_term_1 = self.rho_sum * np.sum((f[:, ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1)
+        max_term = np.max(
+            (f[:, ex_mask] - nad[ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1
+        )
+        sum_term_1 = self.rho_sum * np.sum(
+            (f[:, ex_mask]) / (nad[ex_mask] - z[ex_mask]), axis=1
+        )
         # avoid division by zeros
-        sum_term_2 = self.rho_sum * np.sum((f[:, ~ex_mask]) / (nad[~ex_mask] - uto[~ex_mask]), axis=1)
+        sum_term_2 = self.rho_sum * np.sum(
+            (f[:, ~ex_mask]) / (nad[~ex_mask] - uto[~ex_mask]), axis=1
+        )
 
         return max_term + sum_term_1 + sum_term_2
+
+
+class GuessASF(ASFBase):
+    def __init__(
+        self,
+        nadir: np.ndarray,
+    ):
+        self.nadir = nadir
+
+    def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray):
+        nad = self.nadir
+        f = np.atleast_2d(objective_vectors)
+        z = reference_point
+
+        max_term = np.max((f - nad) / (nad - z), axis=1)
+
+        return max_term

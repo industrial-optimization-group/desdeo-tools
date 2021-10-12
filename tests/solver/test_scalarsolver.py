@@ -43,9 +43,7 @@ def dummy_minimizer(fun, x0, bounds, constraints=None):
 
     res_dict["x"] = x0
 
-    res_dict[
-        "message"
-    ] = "I just retruned the initial guess as the optimal solution."
+    res_dict["message"] = "I just retruned the initial guess as the optimal solution."
 
     return res_dict
 
@@ -62,8 +60,7 @@ def test_dummy_no_cons():
     assert np.array_equal(res["x"], x0)
     assert res["success"]
     assert (
-        res["message"]
-        == "I just retruned the initial guess as the optimal solution."
+        res["message"] == "I just retruned the initial guess as the optimal solution."
     )
 
 
@@ -128,13 +125,11 @@ def test_discrete_solver():
     )
 
     # first occurrence
-    res_ind = dminimizer.minimize(non_dominated_points)
+    res_ind = dminimizer.minimize(non_dominated_points)["x"]
     assert res_ind == 0
 
-    dscalarizer._scalarizer_args = {
-        "reference_point": np.array([0.6, 0.4, 0.2, 0.8])
-    }
-    res_ind = dminimizer.minimize(non_dominated_points)
+    dscalarizer._scalarizer_args = {"reference_point": np.array([0.6, 0.4, 0.2, 0.8])}
+    res_ind = dminimizer.minimize(non_dominated_points)["x"]
 
     assert res_ind == 2
 
@@ -158,15 +153,13 @@ def test_discrete_solver_with_con():
     )
 
     # first occurrence with first point invalid
-    res_ind = dminimizer.minimize(non_dominated_points)
+    res_ind = dminimizer.minimize(non_dominated_points)["x"]
 
     assert res_ind == 1
 
     # first point as closest, but invalid
-    dscalarizer._scalarizer_args = {
-        "reference_point": np.array([0.2, 0.4, 0.6, 0.8])
-    }
-    res_ind = dminimizer.minimize(non_dominated_points)
+    dscalarizer._scalarizer_args = {"reference_point": np.array([0.2, 0.4, 0.6, 0.8])}
+    res_ind = dminimizer.minimize(non_dominated_points)["x"]
 
     assert res_ind == 1
 
