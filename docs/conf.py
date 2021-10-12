@@ -51,6 +51,7 @@ numpydoc_show_class_members = False
 # autoapi
 autoapi_type = "python"
 autoapi_dirs = ["../desdeo_tools/"]
+autoapi_python_class_content = "both"
 suppress_warnings = ["autosectionlabel.*"]
 
 source_suffix = [".rst", ".md", ".ipynb"]

@@ -34,14 +34,14 @@ class BaseRequest(FrozenClass):
 
         Args:
             request_type (str): The type of request. Currently, one of ["print",
-            "simple_plot", "reference_point_preference",
-            "classification_preference"].
+                "simple_plot", "reference_point_preference",
+                "classification_preference"].
             interaction_priority (str): The priority of preference, as decided
-            by the method. One of ["no_interaction", "not_required",
-            "recommended", "required"], with trivial meanings.
+                by the method. One of ["no_interaction", "not_required",
+                "recommended", "required"], with trivial meanings.
             content ([type], optional): The data relevant to the request packet.
-            For example, if the request type is print, content may contain
-            strings to be printed. Typically a dict. Defaults to None.
+                For example, if the request type is print, content may contain
+                strings to be printed. Typically a dict. Defaults to None.
             request_id (int, optional): A unique identifier. Defaults to None.
 
         Raises:
