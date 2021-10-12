@@ -12,6 +12,7 @@ pandas = "^1.0"
 scipy = "^1.2"
 numba = "^0.53.1"
 hvwfg = "^1.0.2"
+sphinx-autoapi = "^1.8.4"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"

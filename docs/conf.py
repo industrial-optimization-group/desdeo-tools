@@ -36,16 +36,22 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
-    "sphinx.ext.autosummary",
+    # "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
-    "sphinx_automodapi.automodapi",
+    # "sphinx_automodapi.automodapi",
     "sphinx.ext.graphviz",
     "sphinx.ext.viewcode",
     "recommonmark",
     "nbsphinx",
     "sphinx.ext.mathjax",
+    "autoapi.extension",
 ]
 numpydoc_show_class_members = False
+
+# autoapi
+autoapi_type = "python"
+autoapi_dirs = ["../desdeo_tools/"]
+suppress_warnings = ["autosectionlabel.*"]
 
 source_suffix = [".rst", ".md", ".ipynb"]
 
@@ -55,7 +61,7 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints" ]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 
 # -- Options for HTML output -------------------------------------------------

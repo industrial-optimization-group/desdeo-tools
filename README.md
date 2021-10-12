@@ -1,3 +1,6 @@
+[![PyPI version](https://badge.fury.io/py/desdeo-tools.svg)](https://badge.fury.io/py/desdeo-tools)
+[![Documentation Status](https://readthedocs.org/projects/desdeo-tools/badge/?version=latest)](https://desdeo-tools.readthedocs.io/en/latest/?badge=latest)
+
 # desdeo-tools
 
 Generic tools and design language used in the DESDEO framework. For example,
