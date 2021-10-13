@@ -1,6 +1,6 @@
-from typing import Any, Callable, Dict, Optional
-
 import numpy as np
+
+from typing import Any, Callable, Dict, Optional
 
 
 class Scalarizer:
@@ -15,11 +15,11 @@ class Scalarizer:
         Args:
             evaluator (Callable): A Callable object returning a numpy array.
             scalarizer (Callable): A function which should accepts as its
-            arguments the output of evaluator and return a single value.
+                arguments the output of evaluator and return a single value.
             evaluator_args (Any, optional): Optional arguments to be passed to
-            evaluator. Defaults to None.
+                evaluator. Defaults to None.
             scalarizer_args (Any, optional): Optional arguments to be passed to
-            scalarizer. Defaults to None.
+                scalarizer. Defaults to None.
         """
         self._evaluator = evaluator
         self._scalarizer = scalarizer
@@ -30,14 +30,14 @@ class Scalarizer:
         """Evaluates the scalarized function with the given arguments and
         returns a scalar value for each vector of variables given in a numpy
         array.
-        
+
         Args:
             xs (np.ndarray): A 2D numpy array containing vectors of variables
-            on each of its rows.
-        
+                on each of its rows.
+
         Returns:
             np.ndarray: A 1D numpy array with the values returned by the
-            scalarizer for each row in xs.
+                scalarizer for each row in xs.
         """
         if self._evaluator_args is not None:
             res_eval = self._evaluator(xs, **self._evaluator_args)
@@ -59,7 +59,6 @@ class Scalarizer:
 
 class DiscreteScalarizer:
     """Implements a class to scalarize discrete vectors given a scalarizing function.
-
     """
 
     def __init__(self, scalarizer: Callable, scalarizer_args: Dict = None):
@@ -89,4 +88,3 @@ if __name__ == "__main__":
     res_1d = dscalarizer(vector)
     print(res)
     print(res_1d)
-    pass
