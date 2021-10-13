@@ -75,7 +75,7 @@ class ScalarMinimizer:
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
     ):
-        """ 
+        """
         Args:
             scalarizer (Scalarizer): A Scalarizer to be minimized.
             bounds (np.ndarray): The bounds of the independent variables the
@@ -86,7 +86,7 @@ class ScalarMinimizer:
                 constraint function values when evaluated. A value of less than zero is
                 understood as a non valid constraint. Defaults to None.
             method (Optional[Union[Callable, str]], optional): The optimization method the scalarizer
-                should be minimized with. It should accepts as keyword the arguments 'bounds' and 
+                should be minimized with. It should accepts as keyword the arguments 'bounds' and
                 'constraints' which will be used to pass it the bounds and constraint_evaluator.
                 If none is supplied, uses the minimizer implemented in SciPy. Otherwise a str can be given
                 to use one of the preset solvers available. Use the method 'get_presets' to get a list
