@@ -104,8 +104,7 @@ def validate_specified_solutions(indices: np.ndarray, n_solutions: int) -> None:
 
 
 def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objectives: int) -> None:
-    """
-    Validate the Decision maker's desired lower and upper bounds for objective values.
+    """Validate the Decision maker's desired lower and upper bounds for objective values.
 
     Args:
         dimensions_data (pd.DataFrame): DataFrame including information whether an objective is minimized or
