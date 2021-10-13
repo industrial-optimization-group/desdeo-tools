@@ -1,8 +1,8 @@
 import abc
+import numpy as np
+
 from abc import abstractmethod
 from typing import List, Union
-
-import numpy as np
 
 
 class ASFError(Exception):
@@ -13,7 +13,6 @@ class ASFBase(abc.ABC):
     """A base class for representing achievement scalarizing functions.
     Instances of the implementations of this class should function as
     function.
-
     """
 
     @abstractmethod
@@ -28,7 +27,7 @@ class ASFBase(abc.ABC):
 
         Returns:
             Union[float, np.ndarray]: Either a single ASF value or a vector of
-            values if objective is a 2D array.
+                values if objective is a 2D array.
 
         Note:
             The reference point may not always necessarily be feasible, but
@@ -49,7 +48,6 @@ class SimpleASF(ASFBase):
         weights (np.ndarray): A weight vector that holds weights. It's
             length should match the number of objectives in the underlying
             MOO problem the achievement problem aims to solve.
-
     """
 
     def __init__(self, weights: np.ndarray):
@@ -66,7 +64,6 @@ class SimpleASF(ASFBase):
 
         Note:
             The shaped of objective_vector and reference_point must match.
-
         """
 
         return np.max(
@@ -100,7 +97,6 @@ class ReferencePointASF(ASFBase):
         NAUTILUS method: An interactive technique in multiobjective
         optimization based on the nadir point
         Europen Journal of Operational Research, 2010, 206, 426-434
-
     """
 
     def __init__(
@@ -154,7 +150,6 @@ class MaxOfTwoASF(ASFBase):
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(
@@ -210,12 +205,10 @@ class StomASF(ASFBase):
         rho_sum (float): A small number to be used as a weight for the sum
             term.
 
-
     References:
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(self, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6):
@@ -242,7 +235,6 @@ class StomASF(ASFBase):
 class PointMethodASF(ASFBase):
     """Implementation of the reference point based ASF.
 
-
     Args:
         nadir (np.ndarray): The nadir point.
         ideal (np.ndarray): The ideal point.
@@ -254,7 +246,6 @@ class PointMethodASF(ASFBase):
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6):
@@ -296,7 +287,6 @@ class AugmentedGuessASF(ASFBase):
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(
@@ -344,13 +334,13 @@ class AugmentedGuessASF(ASFBase):
 class GuessASF(ASFBase):
     """Implementation of the naive or GUESS ASF.
 
+    Args:
+        nadir (np.ndarray): The nadir point of the problem being scalarized.
+
     References:
         Miettinen, K., Mäkelä, M.
         On scalarizing functions in multiobjective optimization
         OR Spectrum 24, 193–213 (2002)
-    
-    Args:
-        nadir (np.ndarray): The nadir point of the problem being scalarized.
     """
 
     def __init__(self, nadir: np.ndarray):
