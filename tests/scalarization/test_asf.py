@@ -1,8 +1,6 @@
-import pytest
-import numpy as np
-
 from desdeo_tools.scalarization import GuessASF
-
+import numpy as np
+import pytest
 
 
 @pytest.fixture
@@ -50,3 +48,4 @@ def test_guess(simple_discrete_data):
     min_i = np.argmin(res)
 
     assert min_i == 3
+
