@@ -7,6 +7,7 @@ from desdeo_tools.scalarization import SimpleASF
 @njit()
 def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
     """ Computes the additive epsilon-indicator between two solutions.
+
     Args:
         s1 (np.ndarray): Solution 1. Should be an one-dimensional array.
         s2 (np.ndarray): Solution 2. Should be an one-dimensional array.
@@ -24,13 +25,14 @@ def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
 
 def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> list:
     """ Computes the additive epsilon-indicator between reference front and current one-dimensional vector of front.
+
     Args:
         front (np.ndarray): The front that the current reference point is being compared to.
-        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+            Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
         reference_point (np.ndarray): The reference point that is compared. Should be one-dimensional array.
+
     Returns:
-        float: The factor by which the approximating front is worse than the reference point with respect to all
-        objectives.
+        list: The list of factors by which the approximating front is worse than the reference point.
     """
     eps_list = np.array(np.zeros(front.shape[0]))
     for i in np.arange(front.shape[0]):
@@ -47,12 +49,12 @@ def preference_indicator(s1: np.ndarray, s2: np.ndarray, min_asf_value: float, r
         ref_point (np.ndarray): The reference point should be same shape as front.
         min_asf_value (float): Minimum value of achievement scalarization of the reference_front. Used in normalization.
         delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther 
-        from the reference point. Smaller delta means that all solutions are in smaller range around the reference
-        point.
+            from the reference point. Smaller delta means that all solutions are in smaller range around the reference
+            point.
 
     Returns:
         float: The factor by which the first solution is worse than the other solution taking into account 
-        the reference point given and spesifity.
+            the reference point given and spesifity.
     """
     s2_asf = SimpleASF(np.ones_like(s2))
     norm = s2_asf(s2, reference_point=ref_point) + delta - min_asf_value
@@ -64,9 +66,8 @@ def hypervolume_indicator(front: np.ndarray, reference_point: np.ndarray) -> flo
 
     Args:
         front (np.ndarray): The front that is compared. Should be set of arrays, where the rows are the solutions and 
-        the columns are the objective dimensions.
-        reference_point (np.ndarray): The reference point that the current front is being compared to. 
-        Should be 1D array.
+            the columns are the objective dimensions.
+        reference_point (np.ndarray): The reference point that the current front is being compared to. Should be 1D array.
 
     Returns:
         float: Measures the volume of the objective space dominated by an approximation set.
