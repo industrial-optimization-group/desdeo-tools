@@ -1,4 +1,5 @@
 from numba import njit
+import numba
 import numpy as np
 import hvwfg as hv
 from desdeo_tools.scalarization import SimpleASF
@@ -13,7 +14,7 @@ def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
         s2 (np.ndarray): Solution 2. Should be an one-dimensional array.
 
     Returns:
-        float: The factor by which the first solution is worse than the other solution.
+        float: The maximum distance between the values in s1 and s2.
     """
     eps = 0.0
     for i in range(s1.size):
@@ -23,8 +24,9 @@ def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
     return eps
 
 
+@njit()
 def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> list:
-    """ Computes the additive epsilon-indicator between reference front and current one-dimensional vector of front.
+    """ Computes the additive epsilon-indicator between reference point and current one-dimensional vector of front.
 
     Args:
         front (np.ndarray): The front that the current reference point is being compared to.
@@ -32,11 +34,14 @@ def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> l
         reference_point (np.ndarray): The reference point that is compared. Should be one-dimensional array.
 
     Returns:
-        list: The list of factors by which the approximating front is worse than the reference point.
+        list: The list of indicator values.
     """
-    eps_list = np.array(np.zeros(front.shape[0]))
+    min_eps = 0.0
+    eps_list = np.zeros((front.shape[0]), dtype=numba.float64)
     for i in np.arange(front.shape[0]):
-        eps_list[i] = np.max(reference_point - front[i])
+        value = np.max(reference_point - front[i])
+        if value > min_eps:
+            eps_list[i] = value
     return eps_list
 
 
@@ -53,8 +58,8 @@ def preference_indicator(s1: np.ndarray, s2: np.ndarray, min_asf_value: float, r
             point.
 
     Returns:
-        float: The factor by which the first solution is worse than the other solution taking into account 
-            the reference point given and spesifity.
+        float: The maximum distance between the values in s1 and s2 taking into account 
+            the reference point and spesifity.
     """
     s2_asf = SimpleASF(np.ones_like(s2))
     norm = s2_asf(s2, reference_point=ref_point) + delta - min_asf_value
@@ -80,7 +85,7 @@ def hypervolume_indicator(front: np.ndarray, reference_point: np.ndarray) -> flo
 if __name__=="__main__":
 
     po_front = np.asarray([[1.0,0],[0.5,0.5], [0,1.0], [2, -1], [0,0]])
-    sol1 = [2,2] # cant be better than po front, min is zero
+    sol1 = [4, 4] # cant be better than po front, min is zero
     sol = np.asarray(sol1)
     ref = np.asarray([0.7, 0.3])
 
