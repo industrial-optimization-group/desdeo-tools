@@ -1,22 +1,23 @@
-from numba import njit
 import numpy as np
 import hvwfg as hv
+
+from numba import njit
 from desdeo_tools.scalarization import SimpleASF
 
 
 @njit()
 def epsilon_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
-    """ Computes the additive epsilon-indicator between reference front and current approximating front.
+    """Computes the additive epsilon-indicator between reference front and current approximating front.
 
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be an one-dimensional array.
+            Should be an one-dimensional array.
         front (np.ndarray): The front that is compared. Should be one-dimensional array with the same shape as
-        reference_front.
+            reference_front.
 
     Returns:
         float: The factor by which the approximating front is worse than the reference front with respect to all
-        objectives.
+            objectives.
     """
     eps = 0.0
     for i in range(reference_front.size):
@@ -28,14 +29,16 @@ def epsilon_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
 
 @njit()
 def epsilon_indicator_ndims(reference_front: np.ndarray, front: np.ndarray) -> float:
-    """ Computes the additive epsilon-indicator between reference front and current approximating front.
+    """Computes the additive epsilon-indicator between reference front and current approximating front.
+
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+            Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
         front (np.ndarray): The front that is compared. Should be one-dimensional array.
+
     Returns:
         float: The factor by which the approximating front is worse than the reference front with respect to all
-        objectives.
+            objectives.
     """
 
     eps = 0.0
@@ -53,17 +56,17 @@ def epsilon_indicator_ndims(reference_front: np.ndarray, front: np.ndarray) -> f
 
 
 def preference_indicator(reference_front: np.ndarray, front: np.ndarray, ref_point: np.ndarray, delta: float) -> float:
-    """ Computes the preference-based quality indicator.
+    """Computes the preference-based quality indicator.
 
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be an one-dimensional array.
+            Should be an one-dimensional array.
         front (np.ndarray): The front that is compared. Should be one-dimensional array with the same shape as
-        reference_front.
+            reference_front.
         ref_point (np.ndarray): The reference point should be same shape as front.
-        delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther 
-        from the reference point. Smaller delta means that all solutions are in smaller range around the reference
-        point.
+        delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther
+            from the reference point. Smaller delta means that all solutions are in smaller range around the reference
+            point.
 
     Returns:
         float: The factor by which the approximating front is worse than the reference front with respect to all
@@ -76,15 +79,14 @@ def preference_indicator(reference_front: np.ndarray, front: np.ndarray, ref_poi
 
 
 def hypervolume_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
-    """ Computes the hypervolume-indicator between reference front and current approximating point.
+    """Computes the hypervolume-indicator between reference front and current approximating point.
 
     Args:
         reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+            Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
         front (np.ndarray): The front that is compared. Should be 2D array.
 
     Returns:
         float: Measures the volume of the objective space dominated by an approximation set.
     """
     return hv.wfg(reference_front, front.reshape(-1))
-

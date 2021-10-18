@@ -1,3 +1,6 @@
+import pytest
+import numpy as np
+
 from desdeo_tools.solver.ScalarSolver import (
     ScalarMethod,
     ScalarMinimizer,
@@ -6,9 +9,6 @@ from desdeo_tools.solver.ScalarSolver import (
     ScalarSolverException,
 )
 from desdeo_tools.scalarization.ASF import PointMethodASF
-
-import pytest
-import numpy as np
 
 
 def simple_problem(xs: np.ndarray):
