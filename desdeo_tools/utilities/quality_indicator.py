@@ -1,7 +1,9 @@
+
 from numba import njit
 import numba
 import numpy as np
 import hvwfg as hv
+
 from desdeo_tools.scalarization import SimpleASF
 
 
@@ -43,6 +45,7 @@ def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> l
         if value > min_eps:
             eps_list[i] = value
     return eps_list
+
 
 
 def preference_indicator(s1: np.ndarray, s2: np.ndarray, min_asf_value: float, ref_point: np.ndarray, delta: float) -> float:

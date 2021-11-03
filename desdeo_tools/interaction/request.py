@@ -1,6 +1,7 @@
+import pandas as pd
+
 from typing import Callable, List, Union
 
-import pandas as pd
 
 from desdeo_tools.interaction.validators import (
     validate_ref_point_with_ideal_and_nadir,
@@ -115,14 +116,14 @@ class PrintRequest(BaseRequest):
 
         Args:
             message (Union[str, List[str]]): A single message (str) or a list of
-            messages to be displayed to the decision maker
+                messages to be displayed to the decision maker
             request_id (int, optional): A unique identifier for this request.
-            Defaults to None.
+                Defaults to None.
 
         Raises:
             RequestError: If message is not a str or a list
             RequestError: If message is a list but one or more elements are not
-            str.
+                str.
         """
         if not isinstance(message, str):
             if not isinstance(message, list):
@@ -152,12 +153,12 @@ class SimplePlotRequest(BaseRequest):
     of visualization is left to the UI.
 
     content is a dict that contains the following keys:
-    "data" (pandas.DataFrame): The data to be plotted.
-    "dimensional_data" (pandas.Dataframe): The data contained in this key can be
-    used to scale the data to be plotted.
-    "chart_title" (str): A recommended title for the visualization.
-    "message" (Union[str, List[str]]): A message or list of messages to be
-    displayed to the decision maker.
+        "data" (pandas.DataFrame): The data to be plotted.
+        "dimensional_data" (pandas.Dataframe): The data contained in this key can be
+            used to scale the data to be plotted.
+        "chart_title" (str): A recommended title for the visualization.
+        "message" (Union[str, List[str]]): A message or list of messages to be
+            displayed to the decision maker.
     """
 
     def __init__(
@@ -173,24 +174,24 @@ class SimplePlotRequest(BaseRequest):
         Args:
             data (pd.DataFrame): The data to be plotted.
             message (Union[str, List[str]]): A message or list of messages to be
-            displayed to the decision maker.
+                displayed to the decision maker.
             dimensions_data (pd.DataFrame, optional): Data used to used to scale
-            the data to be plotted. Defaults to None.
+                the data to be plotted. Defaults to None.
             chart_title (str, optional): A recommended title for the
-            visualization. Defaults to None.
+                visualization. Defaults to None.
             request_id ([type], optional): A unique identifier. Defaults to None.
 
         Raises:
             RequestError: data is not a pandas DataFrame.
             RequestError: dimensions_data is not a pandas DataFrame or None.
             RequestError: A mismatch in the column names of data and
-            dimensions_data.
+                dimensions_data.
             RequestError: If dimensions_data DataFrame contains indices other
-            that "minimize", "ideal", or "nadir".
+                that "minimize", "ideal", or "nadir".
             RequestError: If chart_title is not str or None.
             RequestError: If message is not a str or a list.
             RequestError: If message is a list but one or more elements are not
-            str.
+                str.
         """
         acceptable_dimensions_data_indices = [
             "minimize",  # 1 if minimized, -1 if maximized
@@ -264,10 +265,10 @@ class SimplePlotRequest(BaseRequest):
 
 
 class ReferencePointPreference(BaseRequest):
-    """Methods can use this request class to ask the DM to provide their
-    preferences in the form of a reference point. This reference point is
-    validated according to the needs of the method that initializes this class
-    object, before the reference point can be accepted in the response variable.
+    """Methods can use this request class to ask the DM to provide their preferences
+    in the form of a reference point. This reference point is validated according to
+    the needs of the method that initializes this class object, before the reference
+    point can be accepted in the response variable.
     """
 
     def __init__(
@@ -282,29 +283,29 @@ class ReferencePointPreference(BaseRequest):
 
         Args:
             dimensions_data (pd.DataFrame): Minimal data that should be shown to
-            the decision maker. If a lot of data needs to be shown (i.e., with a
-            visualization), use SimplePlotRequest or related classes for that
-            purpose, and this class for the interaction with the decision maker.
+                the decision maker. If a lot of data needs to be shown (i.e., with a
+                visualization), use SimplePlotRequest or related classes for that
+                purpose, and this class for the interaction with the decision maker.
             message (str, optional): Message to be displayed to a decision
-            maker. Defaults to None.
+                maker. Defaults to None.
             interaction_priority (str, optional): The importance of the
-            interaction as decided by the method. If equal to "required", the
-            method will not continue without a DM preference. If equal to
-            "recommended", the interaction is recommended, but not required for
-            the continuation of the method. The case "not_required" is similar
-            to "recommended". Defaults to "required".
+                interaction as decided by the method. If equal to "required", the
+                method will not continue without a DM preference. If equal to
+                "recommended", the interaction is recommended, but not required for
+                the continuation of the method. The case "not_required" is similar
+                to "recommended". Defaults to "required".
             preference_validator (Callable, optional): A callable function that
-            tests whether a reference point provided by the DM is valid or not.
-            Defaults to None.
+                tests whether a reference point provided by the DM is valid or not.
+                Defaults to None.
             request_id (int, optional): A unique identifier. Defaults to None.
 
         Raises:
             RequestError: dimensions_data is not a pandas DataFrame.
             RequestError: If dimensions_data DataFrame contains indices other
-            that "minimize", "ideal", or "nadir".
+                that "minimize", "ideal", or "nadir".
             RequestError: If message is not a str or a list.
             RequestError: If message is a list but one or more elements are not
-            str.
+                str.
         """
         if message is None:
             message = (
@@ -369,12 +370,10 @@ class ReferencePointPreference(BaseRequest):
         """Validate user preference. Accept if it is valid.
 
         Args:
-            value (pd.DataFrame): The user preference in the form of a pandas
-            DataFrame
+            value (pd.DataFrame): The user preference in the form of a pandas DataFrame
 
         Raises:
-            RequestError: If reference point is not provided in a pandas
-            DataFrame.
+            RequestError: If reference point is not provided in a pandas DataFrame.
         """
         if not isinstance(value, pd.DataFrame):
             msg = "Reference should be provided in a pandas dataframe format"
@@ -386,8 +385,7 @@ class ReferencePointPreference(BaseRequest):
 
 
 class PreferredSolutionPreference(BaseRequest):
-    """
-    Methods can use this class to ask the Decision maker to provide their preferences in form of preferred solution(s).
+    """Methods can use this class to ask the Decision maker to provide their preferences in form of preferred solution(s).
     """
 
     def __init__(
@@ -398,8 +396,7 @@ class PreferredSolutionPreference(BaseRequest):
         preference_validator: Callable = None,
         request_id: int = None,
     ):
-        """
-        Initialize preference-class with information about problem.
+        """Initialize preference-class with information about problem.
 
         Args:
             n_solutions (int): Number of solutions in total.
@@ -449,8 +446,7 @@ class PreferredSolutionPreference(BaseRequest):
 
 
 class NonPreferredSolutionPreference(BaseRequest):
-    """
-    Methods can use this class to ask the Decision maker to provide their preferences in form of non-preferred
+    """Methods can use this class to ask the Decision maker to provide their preferences in form of non-preferred
     solution(s).
     """
 
@@ -462,8 +458,7 @@ class NonPreferredSolutionPreference(BaseRequest):
         preference_validator: Callable = None,
         request_id: int = None,
     ):
-        """
-        Initialize preference-class with information about problem.
+        """Initialize preference-class with information about problem.
 
         Args:
             n_solutions (int): Number of solutions in total.
@@ -513,8 +508,7 @@ class NonPreferredSolutionPreference(BaseRequest):
 
 
 class BoundPreference(BaseRequest):
-    """
-    Methods can use this class to ask the Decision maker to provide their preferences in form of preferred lower and
+    """Methods can use this class to ask the Decision maker to provide their preferences in form of preferred lower and
     upper bounds for objective values.
     """
 
@@ -527,12 +521,11 @@ class BoundPreference(BaseRequest):
         preference_validator: Callable = None,
         request_id: int = None,
     ):
-        """
-        Initialize preference-class with information about problem.
+        """Initialize preference-class with information about problem.
 
         Args:
             dimensions_data (pd.DataFrame): DataFrame including information whether an objective is minimized or
-            maximized, for each objective. In addition, includes ideal and nadir vectors.
+                maximized, for each objective. In addition, includes ideal and nadir vectors.
             n_objectives (int): Number of objectives in problem.
             message (str): Message to be displayed to the Decision maker.
             interaction_priority (str): Level of priority.

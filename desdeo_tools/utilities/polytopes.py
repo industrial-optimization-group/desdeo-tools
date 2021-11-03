@@ -1,14 +1,14 @@
 """Module which handles polytopes."""
 
+import itertools
 import numpy as np
+
 from typing import Optional
 from scipy.optimize import linprog
-import itertools
 
 
 def inherently_nondominated(A: np.ndarray, epsilon: Optional[float] = 1e-06, method: Optional[str] = "highs") -> bool:
-    """
-    Check if a polytope is inherently nondominated:
+    """Check if a polytope is inherently nondominated:
     A polytope is inherently nondominated iff the polytope does not dominate itself.
 
     Args:
@@ -30,7 +30,7 @@ def polytope_dominates(
     method: Optional[str] = "highs"
 ) -> bool:
     """
-    Check if polytope p(k1) dominates polytope p(k2) with epsilon certainty 
+    Check if polytope p(k1) dominates polytope p(k2) with epsilon certainty
     by solving linear optimization problems [min_x c^T*x] using linprog from scipy.optimize.
 
     Args:
@@ -97,17 +97,16 @@ def polytope_dominates(
 
 
 def generate_polytopes(simplices: np.ndarray) -> np.ndarray:
-    """
-    Generate polytopes from an array of indices which form simplices
+    """Generate polytopes from an array of indices which form simplices
 
     Args:
-        arr (np.ndarray): An array of indices which form simplices. 
+        arr (np.ndarray): An array of indices which form simplices.
             In PAINT this is the array of simplices which form the Delaunay triangulation.
 
     Returns
         np.ndarray: An array of indices which form the polytopes
             that are generated from the given array. If a polytope has fewer
-            outcomes than there are columns in the given array the first value of 
+            outcomes than there are columns in the given array the first value of
             the row representing the polytope is repeated until the lengths match.
     """
     simplices = np.sort(simplices)

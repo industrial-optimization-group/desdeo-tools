@@ -1,6 +1,5 @@
 """This module contains classes implementing different interactions to be
 used to communicate between different optimization algorithms and users.
-
 """
 
 __all__ = [
@@ -27,6 +26,7 @@ from desdeo_tools.interaction.request import (
     NonPreferredSolutionPreference,
     BoundPreference,
 )
+
 from desdeo_tools.interaction.validators import (
     validate_ref_point_data_type,
     validate_ref_point_dimensions,
