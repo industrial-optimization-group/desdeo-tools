@@ -1,8 +1,6 @@
 """This module implements methods for defining functions to scalarize vector valued functions.
-These are knows as `Scalarizer`s.
-It also provides achievement
-scalarizing functions to be used with the scalarizers.
-
+These are knows as `Scalarizer`s. It also provides achievement scalarizing functions to be used
+with the scalarizers.
 """
 
 __all__ = [
@@ -12,6 +10,7 @@ __all__ = [
     "ReferencePointASF",
     "SimpleASF",
     "StomASF",
+    "GuessASF",
     "DiscreteScalarizer",
     "Scalarizer",
     "Tchebycheff",
@@ -35,7 +34,9 @@ from desdeo_tools.scalarization.ASF import (
     ReferencePointASF,
     SimpleASF,
     StomASF,
+    GuessASF,
 )
+
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from desdeo_tools.scalarization.MOEADSF import Tchebycheff, WeightedSum, PBI
 

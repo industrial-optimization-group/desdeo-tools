@@ -7,17 +7,17 @@ from typing import Optional, Callable, Union
 
 class ECMError(Exception):
     """Raised when an error related to the Epsilon Constraint Method is encountered.
-
     """
 
 
 class EpsilonConstraintMethod:
     """A class to represent a class for scalarizing MOO problems using the epsilon
         constraint method.
+
     Attributes:
         objectives (Callable): Objective functions.
         to_be_minimized (int): Integer representing which objective function
-        should be minimized.
+            should be minimized.
         epsilons (np.ndarray): Upper bounds chosen by the decison maker.
                                Epsilon constraint functions are defined in a following form:
                                     f_i(x) <= eps_i
@@ -39,9 +39,13 @@ class EpsilonConstraintMethod:
     def evaluate_constraints(self, xs) -> np.ndarray:
         """
         Returns values of constraints with given decison variables.
+
         Args:
             xs (np.ndarray): Decision variables.
-        Returns: Values of constraint functions (both "original" constraints as well as epsilon constraints) in a vector.
+
+        Returns:
+            Values of constraint functions (both "original" constraints as well as epsilon constraints)
+            in a vector.
         """
         xs = np.atleast_2d(xs)
 
@@ -68,10 +72,12 @@ class EpsilonConstraintMethod:
     def __call__(self, objective_vector: np.ndarray) -> Union[float, np.ndarray]:
         """
         Returns the value of objective function to be minimized.
+
         Args:
             objective_vector (np.ndarray): Values of objective functions.
 
-        Returns: Value of objective function to be minimized.
+        Returns:
+            Value of objective function to be minimized.
         """
         if np.shape(objective_vector)[0] > 1:  # more rows than one
             return np.array([objective_vector[i][self._to_be_minimized] for i, _ in enumerate(objective_vector)])
@@ -86,35 +92,31 @@ if __name__ == "__main__":
     def volume(r, h):
         return np.pi * r ** 2 * h
 
-
     def area(r, h):
         return 2 * np.pi ** 2 + np.pi * r * h
 
-
     # add third objective
+
     def weight(v):
         return 0.01 * v
-
 
     def objective(xs):
         # xs is a 2d array like, which has different values for r and h on its first and second columns respectively.
         xs = np.atleast_2d(xs)
         return np.stack((volume(xs[:, 0], xs[:, 1]), -area(xs[:, 0], xs[:, 1]), weight(volume(xs[:, 0], xs[:, 1])))).T
 
-
     # bounds for decision variables
     r_bounds = np.array([2.5, 15])
     h_bounds = np.array([10, 50])
     bounds = np.stack((r_bounds, h_bounds))
 
-
     # constraints
+
     def con_golden(xs):
         # constraints are defined in DESDEO in a way were a positive value indicates an agreement with a constraint, and
         # a negative one a disagreement.
         xs = np.atleast_2d(xs)
         return -(xs[:, 0] / xs[:, 1] - 1.618)
-
 
     # 2. Apply Epsilon contraint method
 

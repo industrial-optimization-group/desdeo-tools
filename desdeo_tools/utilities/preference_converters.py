@@ -7,7 +7,7 @@ def classification_to_reference_point(
     classification_preference: dict, ideal: np.ndarray, nadir: np.ndarray
 ) -> dict:
     """Convert classification type of preference (e.g. NIMBUS) to reference point
-        preference.
+    preference.
 
     Args:
         classification_preference (dict): A dict containing keys 'current solution',

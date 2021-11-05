@@ -1,21 +1,18 @@
 import abc
+import numpy as np
+
 from abc import abstractmethod
 from typing import List, Union
 
-import numpy as np
-
 
 class ASFError(Exception):
-    """Raised when an error related to the ASF classes is encountered.
-
-    """
+    """Raised when an error related to the ASF classes is encountered."""
 
 
 class ASFBase(abc.ABC):
     """A base class for representing achievement scalarizing functions.
     Instances of the implementations of this class should function as
     function.
-
     """
 
     @abstractmethod
@@ -24,13 +21,13 @@ class ASFBase(abc.ABC):
 
         Args:
             objective_vectors (np.ndarray): The objective vectors to calculate
-            the values.
+                the values.
             reference_point (np.ndarray): The reference point to calculate the
-            values.
+                values.
 
         Returns:
             Union[float, np.ndarray]: Either a single ASF value or a vector of
-            values if objective is a 2D array.
+                values if objective is a 2D array.
 
         Note:
             The reference point may not always necessarily be feasible, but
@@ -44,14 +41,13 @@ class SimpleASF(ASFBase):
 
     Args:
         weights (np.ndarray): A weight vector that holds weights. It's
-        length should match the number of objectives in the underlying
-        MOO problem the achievement problem aims to solve.
+            length should match the number of objectives in the underlying
+            MOO problem the achievement problem aims to solve.
 
     Attributes:
         weights (np.ndarray): A weight vector that holds weights. It's
-        length should match the number of objectives in the underlying
-        MOO problem the achievement problem aims to solve.
-
+            length should match the number of objectives in the underlying
+            MOO problem the achievement problem aims to solve.
     """
 
     def __init__(self, weights: np.ndarray):
@@ -62,46 +58,45 @@ class SimpleASF(ASFBase):
 
         Args:
             objective_vector (np.ndarray): A vector representing a solution in
-            the solution space.
+                the solution space.
             reference_point (np.ndarray): A vector representing a reference
-            point in the solution space.
+                point in the solution space.
 
         Note:
             The shaped of objective_vector and reference_point must match.
-
         """
 
-        return np.max(np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)), axis = -1)
+        return np.max(
+            np.where(np.isnan(reference_point), -np.inf, self.weights * (objective_vector - reference_point)), axis=-1
+        )
 
 
 class ReferencePointASF(ASFBase):
     """Uses a reference point q and preferential factors to scalarize a MOO problem.
-    Defined in `Miettinen 2010`_ equation (2).
 
     Args:
         preferential_factors (np.ndarray): The preferential factors.
         nadir (np.ndarray): The nadir point of the MOO problem to be
-        scalarized.
+            scalarized.
         utopian_point (np.ndarray): The utopian point of the MOO problem to be
-        scalarized.
+            scalarized.
         rho (float): A small number to be used to scale the sm factor in the
-        ASF. Defaults to 0.1.
+            ASF. Defaults to 0.1.
 
     Attributes:
         preferential_factors (np.ndarray): The preferential factors.
         nadir (np.ndarray): The nadir point of the MOO problem to be
-        scalarized.
+            scalarized.
         utopian_point (np.ndarray): The utopian point of the MOO problem to be
-        scalarized.
+            scalarized.
         rho (float): A small number to be used to scale the sm factor in the
-        ASF. Defaults to 0.1.
+            ASF. Defaults to 0.1.
 
-    .. _Miettinen 2010:
+    References:
         Miettinen, K.; Eskelinen, P.; Ruiz, F. & Luque, M.
         NAUTILUS method: An interactive technique in multiobjective
         optimization based on the nadir point
         Europen Journal of Operational Research, 2010, 206, 426-434
-
     """
 
     def __init__(
@@ -127,35 +122,34 @@ class ReferencePointASF(ASFBase):
 
 
 class MaxOfTwoASF(ASFBase):
-    """Implements the ASF as defined in eq. 3.1 `Miettinen 2006`_
+    """Implements the ASF used in NIMBUS, which takes the maximum of two terms.
 
     Args:
         nadir (np.ndarray): The nadir point.
         ideal (np.ndarray): The ideal point.
         lt_inds (List[int]): Indices of the objectives categorized to be
-        decreased.
+            decreased.
         lte_inds (List[int]): Indices of the objectives categorized to be
-        reduced until some value is reached.
+            reduced until some value is reached.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
-        term.
+            term.
 
     Attributes:
         nadir (np.ndarray): The nadir point.
         ideal (np.ndarray): The ideal point.
         lt_inds (List[int]): Indices of the objectives categorized to be
-        decreased.
+            decreased.
         lte_inds (List[int]): Indices of the objectives categorized to be
-        reduced until some value is reached.
+            reduced until some value is reached.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
-        term.
+            term.
 
-    .. _Miettinen 2006:
+    References:
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(
@@ -197,27 +191,24 @@ class MaxOfTwoASF(ASFBase):
 
 
 class StomASF(ASFBase):
-    """Implementation of the satisfying trade-off method (STOM) as presented
-    in `Miettinen 2006` equation (3.2)
+    """Implementation of the satisfying trade-off method (STOM).
 
     Args:
         ideal (np.ndarray): The ideal point.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
-        term.
+            term.
 
     Attributes:
         ideal (np.ndarray): The ideal point.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
-        term.
+            term.
 
-
-    .. _Miettinen 2006:
+    References:
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(self, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6):
@@ -242,24 +233,19 @@ class StomASF(ASFBase):
 
 
 class PointMethodASF(ASFBase):
-    """Implementation of the reference point based ASF as presented
-    in `Miettinen 2006` equation (3.3)
+    """Implementation of the reference point based ASF.
 
     Args:
         nadir (np.ndarray): The nadir point.
         ideal (np.ndarray): The ideal point.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
-        term.
+            term.
 
-    Note:
-        Lack of better name...
-
-    .. _Miettinen 2006:
+    References:
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6):
@@ -286,23 +272,21 @@ class PointMethodASF(ASFBase):
 
 
 class AugmentedGuessASF(ASFBase):
-    """Implementation of the augmented GUESS related ASF as presented in
-    `Miettinen 2006` equation (3.4)
+    """Implementation of the augmented GUESS related ASF.
 
     Args:
         nadir (np.ndarray): The nadir point.
         ideal (np.ndarray): The ideal point.
         index_to_exclude (List[int]): The indices of the objective functions to
-        be excluded in calculating the first term of the ASF.
+            be excluded in calculating the first term of the ASF.
         rho (float): A small number to form the utopian point.
         rho_sum (float): A small number to be used as a weight for the sum
-        term.
+            term.
 
-    .. _Miettinen 2006:
+    References:
         Miettinen, K. & Mäkelä, Marko M.
         Synchronous approach in interactive multiobjective optimization
         European Journal of Operational Research, 2006, 170, 909-922
-
     """
 
     def __init__(
@@ -345,3 +329,28 @@ class AugmentedGuessASF(ASFBase):
         sum_term_2 = self.rho_sum * np.sum((f[:, ~ex_mask]) / (nad[~ex_mask] - uto[~ex_mask]), axis=1)
 
         return max_term + sum_term_1 + sum_term_2
+
+
+class GuessASF(ASFBase):
+    """Implementation of the naive or GUESS ASF.
+
+    Args:
+        nadir (np.ndarray): The nadir point of the problem being scalarized.
+
+    References:
+        Miettinen, K., Mäkelä, M.
+        On scalarizing functions in multiobjective optimization
+        OR Spectrum 24, 193–213 (2002)
+    """
+
+    def __init__(self, nadir: np.ndarray):
+        self.nadir = nadir
+
+    def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray):
+        nad = self.nadir
+        f = np.atleast_2d(objective_vectors)
+        z = reference_point
+
+        max_term = np.max((f - nad) / (nad - z), axis=1)
+
+        return max_term

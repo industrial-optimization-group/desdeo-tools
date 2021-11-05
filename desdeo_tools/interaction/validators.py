@@ -80,8 +80,7 @@ def validate_ref_point_data_type(reference_point: pd.DataFrame):
 
 
 def validate_specified_solutions(indices: np.ndarray, n_solutions: int) -> None:
-    """
-    Validate the Decision maker's choice of preferred/non-preferred solutions.
+    """Validate the Decision maker's choice of preferred/non-preferred solutions.
 
     Args:
         indices (np.ndarray): Index/indices of preferred solutions specified by the Decision maker.
@@ -91,7 +90,6 @@ def validate_specified_solutions(indices: np.ndarray, n_solutions: int) -> None:
 
     Raises:
         ValidationError: In case the preference is invalid.
-
     """
 
     if indices.shape[0] < 1:
@@ -106,12 +104,11 @@ def validate_specified_solutions(indices: np.ndarray, n_solutions: int) -> None:
 
 
 def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objectives: int) -> None:
-    """
-    Validate the Decision maker's desired lower and upper bounds for objective values.
+    """Validate the Decision maker's desired lower and upper bounds for objective values.
 
     Args:
         dimensions_data (pd.DataFrame): DataFrame including information whether an objective is minimized or
-        maximized, for each objective. In addition, includes ideal and nadir vectors.
+            maximized, for each objective. In addition, includes ideal and nadir vectors.
         bounds (np.ndarray): Desired lower and upper bounds for each objective.
         n_objectives (int): Number of objectives in problem.
 
@@ -119,7 +116,6 @@ def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objecti
 
     Raises:
         ValidationError: In case desired bounds are invalid.
-
     """
 
     if not isinstance(bounds, np.ndarray):
@@ -164,4 +160,3 @@ def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objecti
                     msg = "Lower bound cannot be lower than nadir value for objective. Nadir vector: {}." \
                         .format(dimensions_data.loc['nadir'].values.tolist())
                     raise ValidationError(msg)
-
