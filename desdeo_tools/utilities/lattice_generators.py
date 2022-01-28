@@ -1,5 +1,4 @@
 """A file to contain different kinds of lattice generation algorithms.
-
 """
 
 import numba
@@ -9,7 +8,7 @@ import numpy as np
 @numba.njit()
 def fibonacci_sphere(samples: int = 1000) -> np.ndarray:
     """Generate a very even lattice of points on a 3d sphere using the fibonacci sphere
-        or fibonacci spiral algorithm.
+    or fibonacci spiral algorithm.
 
     Args:
         samples (int, optional): Number of points to be generated. Defaults to 1000.

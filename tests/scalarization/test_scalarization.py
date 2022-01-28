@@ -7,14 +7,14 @@ from desdeo_tools.scalarization.ASF import PointMethodASF
 
 def simple_vector_valued_fun(xs: np.ndarray, extra: int = 0):
     """A simple vector valued function for testing.
-    
+
     Args:
         xs (np.ndarray): A 2D numpy array with argument vectors as its rows.
-        Each vector consists of four values.
-    
+            Each vector consists of four values.
+
     Returns:
         np.ndarray: A 2D array with function evaluation results for each of
-        the argument vectors on its rows. Each row contains three values.
+            the argument vectors on its rows. Each row contains three values.
     """
     f1 = xs[:, 0] + xs[:, 1] + extra
     f2 = xs[:, 1] - xs[:, 2] + extra

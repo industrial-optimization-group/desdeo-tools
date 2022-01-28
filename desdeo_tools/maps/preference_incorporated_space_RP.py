@@ -1,3 +1,5 @@
+import numpy as np
+
 from desdeo_tools.scalarization.GLIDE_II import (
     GLIDEBase,
     NIMBUS_GLIDE,
@@ -5,12 +7,13 @@ from desdeo_tools.scalarization.GLIDE_II import (
     STOM_GLIDE,
 )
 from desdeo_tools.utilities import classification_to_reference_point
-import numpy as np
+
 from typing import Type, List, Union, Dict
 
 
 class PreferenceIncorporatedSpaceError(Exception):
-    "Raised when an error related to the preference incorporated space is encountered."
+    """Raised when an error related to the preference incorporated space is encountered.
+    """
 
 
 class PreferenceIncorporatedSpace:

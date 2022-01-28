@@ -1,5 +1,4 @@
 """This module implements methods for solving scalar valued functions.
-
 """
 
 __all__ = ["DiscreteMinimizer", "ScalarMethod", "ScalarMinimizer", "ScalarSolverException"]

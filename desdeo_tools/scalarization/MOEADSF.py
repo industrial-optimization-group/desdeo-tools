@@ -1,22 +1,19 @@
 import abc
+import numpy as np
+
 from abc import abstractmethod
 from os import path
 from typing import List, Union
 
-import numpy as np
-
 
 class MOEADSFError(Exception):
     """Raised when an error related to the MOEADSF classes is encountered.
-
     """
 
 
 class MOEADSFBase(abc.ABC):
     """A base class for representing scalarizing functions for the MOEA/D algorithm.
-    Instances of the implementations of this class should work as
-    function.
-
+    Instances of the implementations of this class should work as function.
     """
 
     @abstractmethod
@@ -31,14 +28,14 @@ class MOEADSFBase(abc.ABC):
 
         Args:
             objective_vector (np.ndarray): The objective vector to calculate
-            the values.
-            reference_vector (np.ndarray): The reference vector to calculate the
-            values.
+                the values.
+            reference_vector (np.ndarray): The reference vector to calculate
+                the values.
             ideal_vector (np.ndarray): The ideal objective vector.
             nadir_vector (np.ndarray): The nadir objective vector.
         Returns:
             Union[float, np.ndarray]: Either a single SF value or a vector of
-            values if objective is a 2D array.
+                values if objective is a 2D array.
         """
         pass
 
@@ -57,15 +54,15 @@ class Tchebycheff(MOEADSFBase):
 
         Args:
             objective_vector (np.ndarray): A vector representing a solution in
-            the objective space.
+                the objective space.
             reference_vector (np.ndarray): A reference vector representing the direction
-            ideal_vector (np.ndarray): The ideal objective vector 
+            ideal_vector (np.ndarray): The ideal objective vector
+
         Raises:
             MOEADSFError: The dimensions of the objective vector and reference_vector don't match.
 
         Note:
             The shaped of objective_vector and reference_vector must match.
-
         """
         if not objective_vector.shape == reference_vector.shape:
             msg = (
@@ -90,14 +87,14 @@ class WeightedSum(MOEADSFBase):
 
         Args:
             objective_vector (np.ndarray): A vector representing a solution in
-            the objective space.
+                the objective space.
             reference_vector (np.ndarray): A reference vector representing the direction
+
         Raises:
             MOEADSFError: The dimensions of the objective vector and reference_vector don't match.
 
         Note:
             The shaped of objective_vector and reference_vector must match. A reference point is not needed.
-
         """
         if not objective_vector.shape == reference_vector.shape:
             msg = (
@@ -111,13 +108,14 @@ class WeightedSum(MOEADSFBase):
 
 class PBI(MOEADSFBase):
     """Implements the PBI scalarization function
+
     Args:
         theta(float): A penalty parameter used by the function
 
     Attributes:
         theta (float): A penalty parameter used by the function
 
-    .. Q. Zhang and H. Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition," 
+    .. Q. Zhang and H. Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition,"
        in IEEE Transactions on Evolutionary Computation, vol. 11, no. 6, pp. 712-731, Dec. 2007, doi: 10.1109/TEVC.2007.892759.
     """
 
@@ -134,15 +132,15 @@ class PBI(MOEADSFBase):
 
         Args:
             objective_vector (np.ndarray): A vector representing a solution in
-            the objective space.
+                the objective space.
             reference_vector (np.ndarray): A reference vector representing the direction
             ideal_vector (np.ndarray): The ideal objecive vector
+
         Raises:
             MOEADSFError: The dimensions of the objective vector and reference_vector don't match.
 
         Note:
             The shaped of objective_vector and reference_vector must match. The reference point is not needed.
-
         """
         if not objective_vector.shape == reference_vector.shape:
             msg = (
@@ -161,4 +159,3 @@ class PBI(MOEADSFBase):
 
         fvalue = d1 + self.theta * d2
         return fvalue
-

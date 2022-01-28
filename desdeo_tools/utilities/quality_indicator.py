@@ -1,98 +1,105 @@
+
 from numba import njit
+import numba
 import numpy as np
 import hvwfg as hv
 
+from desdeo_tools.scalarization import SimpleASF
+
 
 @njit()
-def epsilon_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
-    """ Computes the additive epsilon-indicator between reference front and current approximating front.
+def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
+    """ Computes the additive epsilon-indicator between two solutions.
 
     Args:
-        reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be an one-dimensional array.
-        front (np.ndarray): The front that is compared. Should be one-dimensional array with the same shape as
-        reference_front.
+        s1 (np.ndarray): Solution 1. Should be an one-dimensional array.
+        s2 (np.ndarray): Solution 2. Should be an one-dimensional array.
 
     Returns:
-        float: The factor by which the approximating front is worse than the reference front with respect to all
-        objectives.
+        float: The maximum distance between the values in s1 and s2.
     """
     eps = 0.0
-    for i in range(reference_front.size):
-        value = front[i] - reference_front[i]
+    for i in range(s1.size):
+        value = s2[i] - s1[i]
         if value > eps:
             eps = value
     return eps
 
 
 @njit()
-def epsilon_indicator_ndims(reference_front: np.ndarray, front: np.ndarray) -> float:
-    """ Computes the additive epsilon-indicator between reference front and current approximating front.
+def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> list:
+    """ Computes the additive epsilon-indicator between reference point and current one-dimensional vector of front.
+
     Args:
-        reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
-        front (np.ndarray): The front that is compared. Should be one-dimensional array.
+        front (np.ndarray): The front that the current reference point is being compared to.
+            Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
+        reference_point (np.ndarray): The reference point that is compared. Should be one-dimensional array.
+
     Returns:
-        float: The factor by which the approximating front is worse than the reference front with respect to all
-        objectives.
+        list: The list of indicator values.
     """
-
-    eps = 0.0
-    ref_len = reference_front.shape[0]
-    front_len = front.shape[0]
-    value = 0
-
-    for i in np.arange(ref_len):
-        for j in np.arange(front_len):
-            value = front[j] - reference_front[i][j]
-            if value > eps:
-                eps = value
-
-    return eps
+    min_eps = 0.0
+    eps_list = np.zeros((front.shape[0]), dtype=numba.float64)
+    for i in np.arange(front.shape[0]):
+        value = np.max(reference_point - front[i])
+        if value > min_eps:
+            eps_list[i] = value
+    return eps_list
 
 
-def hypervolume_indicator(reference_front: np.ndarray, front: np.ndarray) -> float:
+
+def preference_indicator(s1: np.ndarray, s2: np.ndarray, min_asf_value: float, ref_point: np.ndarray, delta: float) -> float:
+    """ Computes the preference-based quality indicator.
+
+    Args:
+        s1 (np.ndarray): Solution 1. Should be an one-dimensional array.
+        s2 (np.ndarray): Solution 2. Should be an one-dimensional array.
+        ref_point (np.ndarray): The reference point should be same shape as front.
+        min_asf_value (float): Minimum value of achievement scalarization of the reference_front. Used in normalization.
+        delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther 
+            from the reference point. Smaller delta means that all solutions are in smaller range around the reference
+            point.
+
+    Returns:
+        float: The maximum distance between the values in s1 and s2 taking into account 
+            the reference point and spesifity.
+    """
+    s2_asf = SimpleASF(np.ones_like(s2))
+    norm = s2_asf(s2, reference_point=ref_point) + delta - min_asf_value
+    return epsilon_indicator(s1, s2) / norm
+
+
+def hypervolume_indicator(front: np.ndarray, reference_point: np.ndarray) -> float:
     """ Computes the hypervolume-indicator between reference front and current approximating point.
 
     Args:
-        reference_front (np.ndarray): The reference front that the current front is being compared to.
-        Should be set of arrays, where the rows are the solutions and the columns are the objective dimensions.
-        front (np.ndarray): The front that is compared. Should be 2D array.
+        front (np.ndarray): The front that is compared. Should be set of arrays, where the rows are the solutions and 
+            the columns are the objective dimensions.
+        reference_point (np.ndarray): The reference point that the current front is being compared to. Should be 1D array.
 
     Returns:
         float: Measures the volume of the objective space dominated by an approximation set.
     """
-    return hv.wfg(reference_front, front.reshape(-1))
+    ref = np.asarray(reference_point, dtype='double') # hv.wfg needs datatype to be double
+    fr = np.asarray(front, dtype='double')
+    return hv.wfg(fr, ref)
 
 
-if __name__ == "__main__":
-    x = np.array([[1, 0], [0.5, 0.5], [0, 1], [1.5, 0.75]])
-    ref = np.array([[2.0, 2.0]])
-    print(epsilon_indicator(x, ref))
-    print(hypervolume_indicator(x, ref))
+if __name__=="__main__":
 
-    x_simple = np.array([[0.0, 0.0]])
-    ref_simple = np.array([[2.0, 1.0]])
-    print(epsilon_indicator(x_simple, ref_simple))
+    po_front = np.asarray([[1.0,0],[0.5,0.5], [0,1.0], [2, -1], [0,0]])
+    sol1 = [4, 4] # cant be better than po front, min is zero
+    sol = np.asarray(sol1)
+    ref = np.asarray([0.7, 0.3])
 
-    obj = np.array([[0.3, 0.6, 1.0], [0.4, 0.4, 1.2], [0.6, 0.2, 0.3]])
-
-    print(epsilon_indicator(obj, ref))
-    ref_hv = np.array([[1.1, 1.1, 1.1]])
-    print(hypervolume_indicator(obj, ref_hv))
-    ref_hv2 = np.array([[2.0, 2.0, 2.0]])
-    print(hypervolume_indicator(obj, ref_hv2))
-
-    print("\n========= PERFORMANCE TEST ===========")
-    objvalues = 1000
-    objdims = 77
-    solpoints = np.random.randint(1, objdims)
-    print(solpoints)
-
-    x_hard = np.array(np.random.rand(objvalues, objdims))
-    # print(x_hard)
-    ref_hard = np.array(np.random.rand(solpoints, objdims))
-    # print(ref_hard)
-    ref_hard_vector = np.array(np.random.rand(1, objdims))
-    print(epsilon_indicator(x_hard, ref_hard))
-    print(hypervolume_indicator(x_hard, ref_hard_vector))
+    print("eps indi value")
+    print(epsilon_indicator(po_front[0], sol))
+    print(epsilon_indicator(po_front[1], sol))
+    print(epsilon_indicator(po_front[2], sol))
+    print(epsilon_indicator(po_front[3], sol))
+    print(epsilon_indicator(po_front[4], sol))
+    print("ndims")
+    print(epsilon_indicator_ndims(po_front, sol))
+    print(hypervolume_indicator(po_front, sol))
+    print("pref")
+    print(preference_indicator(po_front[1], sol, 0.1, ref, 0.1))
