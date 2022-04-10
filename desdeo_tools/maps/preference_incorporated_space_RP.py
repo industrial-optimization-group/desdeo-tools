@@ -4,10 +4,11 @@ from desdeo_tools.scalarization.GLIDE_II import (
     GLIDEBase,
     NIMBUS_GLIDE,
     reference_point_method_GLIDE,
+    STOM_GLIDE,
 )
 from desdeo_tools.utilities import classification_to_reference_point
 
-from typing import Type, List, Union
+from typing import Type, List, Union, Dict
 
 
 class PreferenceIncorporatedSpaceError(Exception):
@@ -15,7 +16,7 @@ class PreferenceIncorporatedSpaceError(Exception):
     """
 
 
-class __PreferenceIncorporatedSpace:
+class PreferenceIncorporatedSpace:
     def __init__(
         self,
         scalarizers: List[Type[GLIDEBase]],
@@ -25,13 +26,12 @@ class __PreferenceIncorporatedSpace:
         rho: float = 1e-6,
     ):
         self.scalarizers = scalarizers
-        self.update_map(utopian=utopian, nadir=nadir, preference=preference, rho=rho)
+        self.update_map(utopian=utopian, nadir=nadir, rho=rho)
 
     def update_map(
         self,
         utopian: np.ndarray,
         nadir: np.ndarray,
-        preference: dict,
         scalarizers: List[Type[GLIDEBase]] = None,
         rho: float = 1e-6,
     ):
@@ -45,49 +45,18 @@ class __PreferenceIncorporatedSpace:
         if nadir is not None:
             self.nadir = nadir
 
-        self.preference = preference
-
         self.initialized_scalarizers = [
             scalarizer(utopian=utopian, nadir=nadir, rho=rho)
             for scalarizer in scalarizers
         ]
-
-        if "classifications" in preference.keys():
-            self.classification_preference = preference
-            self.RP_preference = classification_to_reference_point(
-                preference, ideal=self.utopian, nadir=self.nadir
-            )
-        elif "reference point" in preference.keys():
-            self.RP_preference = preference
-            self.classification_preference = None
 
         self.preferences = []
         self.has_additional_constraints = False
         self.constrained_scalarizers = []
 
         for scalarizer in self.initialized_scalarizers:
-            required_keys = scalarizer.required_keys.keys()
+            # self.required_keys = scalarizer.required_keys.keys()
 
-            if "reference point" in required_keys:
-                self.requires_reference_point = True
-                self.preferences.append(self.RP_preference)
-            elif "classifications" in required_keys:
-                self.requires_classifications = True
-                if self.classification_preference is None:
-                    raise PreferenceIncorporatedSpaceError(
-                        f"A classification preference is required.\n"
-                        f"Format of classification preference (dictionary): \n"
-                        f"{scalarizer.required_keys}"
-                    )
-                self.preferences.append(self.classification_preference)
-            else:
-                raise PreferenceIncorporatedSpaceError(
-                    f"Unknown scalarizing function encountered. Type: {type(scalarizer)}.\n"
-                    f"Only scalarizing functions which require reference points "
-                    f"or classification preferences are supported."
-                    f"Current scalarizing functions requires: \n"
-                    f"{scalarizer.required_keys}"
-                )
             self.constrained_scalarizers.append(scalarizer.has_additional_constraints)
             self.has_additional_constraints = (
                 self.has_additional_constraints or scalarizer.has_additional_constraints
@@ -212,3 +181,18 @@ class classificationPIS:
         for i, scalarizer in enumerate(self.initialized_scalarizers):
             mapped_vectors[:, i + 1] = scalarizer(objective_vector, self.RP_preference)
         return mapped_vectors
+
+
+class MultiDMPIS(PreferenceIncorporatedSpace):
+    def __init__(
+        self,
+        utopian: np.ndarray,
+        num_DM: int = 2,
+        scalarizer: Type[GLIDEBase] = STOM_GLIDE,
+        nadir: np.ndarray = None,
+        rho: float = 1e-6,
+    ):
+        super().__init__([scalarizer] * num_DM, utopian, nadir, rho)
+
+    def update_preference(self, preference: List[Dict]):
+        self.preferences = preference
