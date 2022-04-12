@@ -4,7 +4,8 @@ from desdeo_tools.scalarization.GLIDE_II import (
     GLIDEBase,
     NIMBUS_GLIDE,
     reference_point_method_GLIDE,
-    STOM_GLIDE,
+    AUG_STOM_GLIDE,
+    AUG_GUESS_GLIDE,
 )
 from desdeo_tools.utilities import classification_to_reference_point
 
@@ -22,11 +23,12 @@ class PreferenceIncorporatedSpace:
         scalarizers: List[Type[GLIDEBase]],
         utopian: np.ndarray,
         nadir: np.ndarray,
-        preference: dict,
+        # preference: dict,
         rho: float = 1e-6,
     ):
         self.scalarizers = scalarizers
         self.update_map(utopian=utopian, nadir=nadir, rho=rho)
+        self.num_scalarizers = len(self.scalarizers)
 
     def update_map(
         self,
@@ -111,6 +113,7 @@ class classificationPIS:
         self.nimbus_copycat: Union[reference_point_method_GLIDE, None] = None
         self.scalarizers = scalarizers
         self.update_map(utopian=utopian, nadir=nadir, rho=rho)
+        self.num_scalarizers = len(self.scalarizers) + 1
 
     def update_map(
         self,
@@ -188,11 +191,28 @@ class MultiDMPIS(PreferenceIncorporatedSpace):
         self,
         utopian: np.ndarray,
         num_DM: int = 2,
-        scalarizer: Type[GLIDEBase] = STOM_GLIDE,
+        scalarizer: Type[GLIDEBase] = AUG_STOM_GLIDE,
         nadir: np.ndarray = None,
         rho: float = 1e-6,
     ):
-        super().__init__([scalarizer] * num_DM, utopian, nadir, rho)
+        super().__init__(
+            scalarizers=[scalarizer] * num_DM, utopian=utopian, nadir=nadir, rho=rho
+        )
 
     def update_preference(self, preference: List[Dict]):
         self.preferences = preference
+
+
+class IOPIS(PreferenceIncorporatedSpace):
+    def __init__(
+        self,
+        utopian: np.ndarray,
+        nadir: np.ndarray,
+        scalarizers: List[Type[GLIDEBase]] = [AUG_STOM_GLIDE, AUG_GUESS_GLIDE],
+        rho: float = 1e-6,
+    ):
+        super().__init__(utopian=utopian, nadir=nadir, scalarizers=scalarizers, rho=rho)
+
+    def update_preference(self, preference: dict):
+        self.preferences = [preference] * self.num_scalarizers
+
