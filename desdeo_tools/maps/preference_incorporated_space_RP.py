@@ -52,7 +52,6 @@ class PreferenceIncorporatedSpace:
             for scalarizer in scalarizers
         ]
 
-        self.preferences = []
         self.has_additional_constraints = False
         self.constrained_scalarizers = []
 
