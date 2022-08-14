@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "desdeo-tools"
-version = "1.7.2"
+version = "1.7.3"
 description = "Generic tools and design language used in the DESDEO framework"
 authors = ["Bhupinder Saini", "Giovanni Misitano", "Antti Luopajärvi"]
 license = "MIT"
@@ -10,7 +10,7 @@ python = ">=3.7, <3.10"
 numpy = "^1.17"
 pandas = "^1.0"
 scipy = "^1.2"
-numba = "^0.53.1"
+numba = "^0.56"
 hvwfg = "^1.0.2"
 sphinx-autoapi = "^1.8.4"
 
