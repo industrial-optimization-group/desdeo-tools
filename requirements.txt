@@ -44,7 +44,7 @@ mccabe==0.6.1; python_version >= "3.6" and python_full_version < "3.0.0" and pyt
 mistune==0.8.4; python_version >= "3.6"
 more-itertools==8.7.0; python_version >= "3.5"
 nbclient==0.5.3; python_full_version >= "3.6.1" and python_version >= "3.6"
-nbconvert==6.0.7; python_version >= "3.6"
+nbconvert==6.5.1; python_version >= "3.6"
 nbformat==5.1.3; python_full_version >= "3.6.1" and python_version >= "3.6"
 nbsphinx==0.7.1; python_version >= "3"
 nest-asyncio==1.5.1; python_full_version >= "3.6.1" and python_version >= "3.6"
