@@ -7,3 +7,5 @@ Examples
 
    notebooks/Discrete_solver
    notebooks/Scalarizer_and_ScalarSolver
+   notebooks/Reference_point
+

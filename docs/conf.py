@@ -54,7 +54,7 @@ autoapi_dirs = ["../desdeo_tools/"]
 autoapi_python_class_content = "both"
 suppress_warnings = ["autosectionlabel.*"]
 
-source_suffix = [".rst", ".md", ".ipynb"]
+source_suffix = [".rst", ".md"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

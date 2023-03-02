@@ -14,7 +14,7 @@ representation of a Pareto optimal front for a multiobjective optimization probl
 Requirements
 ============
 
-* Python 3.7 or newer.
+* Python 3.9 or 3.10.
 * `Poetry dependency manager <https://python-poetry.org/>`__ : Only for developers.
 
 See `pyproject.toml` for Python package requirements.
@@ -70,3 +70,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
