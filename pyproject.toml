@@ -12,6 +12,7 @@ pandas = "^1.0"
 scipy = "^1.2"
 numba = "^0.56"
 hvwfg = "^1.0.2"
+rbfopt = "^4.2.6"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
