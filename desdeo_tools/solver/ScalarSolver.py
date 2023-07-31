@@ -1,15 +1,21 @@
 """Implements methods for solving scalar valued functions.
 """
 import numpy as np
+import os
+import rbfopt
 
 from typing import Callable, Dict, Optional, Union
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
+from desdeo_tools.scalarization.ASF import PointMethodASF
+from desdeo_problem import variable_builder, ScalarObjective, MOProblem
+from desdeo_tools.scalarization.ASF import PointMethodASF
+from desdeo_tools.scalarization.Scalarizer import Scalarizer
+
 
 class ScalarSolverException(Exception):
     pass
-
 
 class ScalarMethod:
     """A class the define and implement methods for minimizing scalar valued functions.
@@ -63,6 +69,62 @@ class ScalarMethod:
         return res
 
 
+class MixedIntegerMinimizer:
+    def __init__(self, problem: MOProblem):
+        """
+        Args:
+            problem (MOProblem): A scalarized MOProblem instance to be minimized.
+        """
+        self.problem = problem
+        self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
+        self.upper_bounds = [var.get_bounds()[1] for var in self.problem.variables]
+        self.var_types = [var.type for var in self.problem.variables]
+
+        # Print out the initialized values
+        print(type(problem)) 
+        print(f"Problem: {self.problem}")
+        print(f"Lower bounds: {self.lower_bounds}")
+        print(f"Upper bounds: {self.upper_bounds}")
+        print(f"Var_types: {self.var_types}")
+        
+    def create_settings(self, max_evaluations=25, nlp_solver_path="ipopt", 
+                        minlp_solver_path='/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'):
+        #TO DO: need to change the solver_path
+        settings = rbfopt.RbfoptSettings(
+            max_evaluations=max_evaluations,
+            global_search_method="solver", 
+            nlp_solver_path=nlp_solver_path, 
+            minlp_solver_path=minlp_solver_path,
+            print_solver_output=False
+            
+        )
+        return settings
+    
+    def evaluate_objective(self, x):
+        result = self.problem.objectives[0].evaluate(x).objectives[0]
+        print(f"Evaluating at {x}, result: {result}")
+        return result
+    
+    def minimize(self, x0, **kwargs):
+        bb = rbfopt.RbfoptUserBlackBox(
+            len(self.lower_bounds),
+            self.lower_bounds,
+            self.upper_bounds,
+            self.var_types,
+            #self.problem
+            #lambda x: self.problem.objectives[0].evaluate(x).objectives[0]
+            self.evaluate_objective
+        )
+        
+        null_stream = open(os.devnull, 'w')
+        alg = rbfopt.RbfoptAlgorithm(self.create_settings(), bb)
+        alg.set_output_stream(null_stream)
+
+        val, x, itercount, evalcount, fast_evalcount = alg.optimize()
+        null_stream.close()
+        
+        return {'x': x, 'fun': val, 'success': itercount > 0, 'itercount': itercount, 'evalcount': evalcount, 'fast_evalcount': fast_evalcount}
+
 class ScalarMinimizer:
     """Implements a class for minimizing scalar valued functions with bounds set for the
     variables, and constraints.
@@ -93,11 +155,11 @@ class ScalarMinimizer:
                 of available preset solvers.
                 Defaults to None.
         """
-        self.presets = ["scipy_minimize", "scipy_de"]
-
+        self.presets = ["scipy_minimize", "scipy_de", "MixedIntegerMinimizer"]
         self._scalarizer = scalarizer
         self._bounds = bounds
         self._constraint_evaluator = constraint_evaluator
+
         if (method is None) or (method == "scipy_minimize"):
             # scipy minimize
             self._use_scipy = True
@@ -119,7 +181,13 @@ class ScalarMinimizer:
                 lambda x, _, **y: differential_evolution(x, **y), method_args={"polish": True}
             )
             self._method = scipy_de_method
-
+        
+        #Add mixedIntegerSolver
+        elif method == "MixedIntegerMinimizer":
+            self._use_scipy = False
+            self._mixed_integer_minimizer = MixedIntegerMinimizer(problem)
+            self._method = ScalarMethod(lambda x, _, **y: self._mixed_integer_minimizer.minimize(x, **y))
+        
         else:
             self._use_scipy = method._use_scipy
             self._method = method
@@ -222,9 +290,14 @@ class DiscreteMinimizer:
             min_index = np.nanargmin(res)
             return {"x": min_index, "fun": min_value, "success": True}
 
-
 if __name__ == "__main__":
+
+    #DISCRETE PROBLEM
+
     from desdeo_tools.scalarization.ASF import PointMethodASF
+    from desdeo_problem import variable_builder, ScalarObjective, MOProblem
+    from desdeo_tools.scalarization.ASF import PointMethodASF
+    from desdeo_tools.scalarization.Scalarizer import Scalarizer
 
     ideal = np.array([0, 0, 0, 0])
     nadir = np.array([1, 1, 1, 1])
@@ -245,3 +318,60 @@ if __name__ == "__main__":
 
     res = dminimizer.minimize(non_dominated_points)
     print("res", res)
+    
+    
+    #INTEGER PROBLEM
+    
+    def f1(x):
+        x = np.atleast_2d(x)
+        return -(x[:,0] + x[:,1])
+
+    def f2(x):
+        x = np.atleast_2d(x)
+        return abs(x[:,0] - x[:,1])
+
+    objective_1 = ScalarObjective(name="f1", evaluator=f1)
+    objective_2 = ScalarObjective(name="f2", evaluator=f2)
+    ideal = np.array([-1,5])
+    nadir = np.array([-10,0])
+    ref_point = np.array([-7,0])
+    
+    #Bounds
+    l_bounds=[0, 1]
+    u_bounds=[5, 5]
+    bounds = np.stack((l_bounds, u_bounds))
+    
+    # Define the variables and their bounds
+    varsl = variable_builder(["x1", "x2"],
+                             initial_values=[4, 3],
+                             lower_bounds=[0, 1],
+                             upper_bounds=[5, 5],
+                             types=["R", "I"])
+    
+    # Create the problem instance
+    problem = MOProblem(variables=varsl, objectives=[objective_1, objective_2], ideal=ideal, nadir=nadir)
+    
+    #ASF
+    
+    #use problem.evaluate and use fitness values 
+    #can use lambda function after that
+    #add variable types as well as bounds 
+    
+    #change from R and I to Real and Integer and Binary and Other
+    #If using bonmin change from Real to R and I
+    
+    asf = PointMethodASF(nadir, ideal)
+    scalarized_objectives = Scalarizer(asf, lambda x: problem.evaluate(x).fitness, scalarizer_args={"reference_point": ref_point})
+    
+    # Given a point x
+    x = np.array([1, 1])
+
+    # The scalarized objective value at x can be computed as follows:
+    #scalarized_objectives(x)
+
+    #print("The scalarized objective value is: ", lambda x: problem.evaluate(x).fitness)
+    
+    initial_guess = np.array([1, 1])  # Or any other starting point you prefer
+    minimizer = ScalarMinimizer(scalarized_objectives, bounds, method="MixedIntegerMinimizer")
+    res = minimizer.minimize(initial_guess)
+    print(res)
