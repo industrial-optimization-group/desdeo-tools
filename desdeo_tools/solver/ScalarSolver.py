@@ -375,3 +375,5 @@ if __name__ == "__main__":
     minimizer = ScalarMinimizer(scalarized_objectives, bounds, method="MixedIntegerMinimizer")
     res = minimizer.minimize(initial_guess)
     print(res)
+
+    
