@@ -338,3 +338,59 @@ if __name__ == "__main__":
     minimizer = ScalarMinimizer(scalarized_objectives, bounds, problem, minlp_solver_path, method="MixedIntegerMinimizer")
     res = minimizer.minimize(initial_guess)
     print(res)
+
+
+    # Test for slsqp in scalarsolver
+    import numpy as np
+    #from desdeo_tools.solver.ScalarSolver import ScalarMinimizer
+    from scipy.optimize import NonlinearConstraint
+    from desdeo_tools.scalarization.Scalarizer import Scalarizer
+    
+    # objectives
+    
+    def volume(r, h):
+        return np.pi*r**2*h
+    
+    def area(r, h):
+        return 2*np.pi**2 + np.pi*r*h
+    
+    def objective(xs):
+        # xs is a 2d array like, which has different values for r and h on its first and second columns respectively.
+        xs = np.atleast_2d(xs)
+        return np.stack((volume(xs[:, 0], xs[:, 1]), -area(xs[:, 0], xs[:, 1]))).T
+    
+    # bounds
+    
+    r_bounds = np.array([2.5, 15])
+    h_bounds = np.array([10, 50])
+    bounds = np.stack((r_bounds, h_bounds))
+    
+    # constraints
+    
+    def con_golden(xs):
+        # constraints are defined in DESDEO in a way were a positive value indicates an agreement with a constraint, and
+        # a negative one a disagreement.
+        xs = np.atleast_2d(xs)
+        return -(xs[:, 0] / xs[:, 1] - 1.618)
+    
+    def simple_sum(xs):
+        xs = np.atleast_2d(xs)
+        return np.sum(xs, axis=1)
+    
+    scalarized_objective = Scalarizer(objective, simple_sum)
+
+    # by setting the method to be none, we will actually be using the minimizer implemented
+    # in the SciPy library.
+    
+    minimizer = ScalarMinimizer(scalarized_objective, bounds, constraint_evaluator=con_golden, scipy_method="SLSQP")
+    
+    # we need to supply an initial guess
+    x0 = np.array([2.6, 11])
+    sum_res = minimizer.minimize(x0)
+    
+    # the optimal solution and function value
+    x_optimal, f_optimal = sum_res["x"], sum_res["fun"]
+    objective_optimal = objective(sum_res["x"]).squeeze()
+    
+    print(x_optimal[0], x_optimal[1])
+    print(objective_optimal[0], -objective_optimal[1])
