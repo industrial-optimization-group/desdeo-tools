@@ -2,16 +2,9 @@
 """
 import numpy as np
 import os
-
 from typing import Callable, Dict, Optional, Union
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
-
-from desdeo_tools.scalarization.ASF import PointMethodASF
-#from desdeo_problem import variable_builder, ScalarObjective, MOProblem
-
-
-#import rbfopt
 
 
 class ScalarSolverException(Exception):
@@ -69,60 +62,6 @@ class ScalarMethod:
 
         return res
 
-class MixedIntegerMinimizer:
-
-    """
-    Args:
-        problem (MOProblem): A scalarized MOProblem instance to be minimized.
-    """
-
-    def __init__(self, scalarized_objective: Callable, problem):
-        
-        # Try importing rbfopt
-        try:
-            global rbfopt
-            import rbfopt
-        except ImportError:
-            raise ScalarSolverException("The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again.")
-
-        
-        self.scalarized_objectives = scalarized_objective
-        self.problem = problem
-        self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
-        self.upper_bounds = [var.get_bounds()[1] for var in self.problem.variables]
-        self.var_types = [var.type for var in self.problem.variables]
-        
-    def create_settings(self, max_evaluations=25, nlp_solver_path="ipopt", 
-                        minlp_solver_path='/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'):
-        settings = rbfopt.RbfoptSettings(
-            max_evaluations=max_evaluations,
-            global_search_method="solver", 
-            nlp_solver_path=nlp_solver_path, 
-            minlp_solver_path=minlp_solver_path,
-            print_solver_output=False
-            
-        )
-        return settings
-    
-    def minimize(self, x0, **kwargs):
-        print(self.var_types)
-        bb = rbfopt.RbfoptUserBlackBox(
-            dimension =len(self.lower_bounds),
-            var_lower = self.lower_bounds,
-            var_upper = self.upper_bounds,
-            var_type = self.var_types,
-            obj_funct = lambda x, **kwargs: scalarized_objectives(x, **kwargs)[0]
-        )
-        
-        null_stream = open(os.devnull, 'w')
-        alg = rbfopt.RbfoptAlgorithm(self.create_settings(), bb)
-        alg.set_output_stream(null_stream)
-
-        val, x, itercount, evalcount, fast_evalcount = alg.optimize()
-        null_stream.close()
-        
-        return {'x': x, 'fun': val, 'success': itercount > 0, 'itercount': itercount, 'evalcount': evalcount, 'fast_evalcount': fast_evalcount}
-
 
 class ScalarMinimizer:
     """Implements a class for minimizing scalar valued functions with bounds set for the
@@ -133,10 +72,9 @@ class ScalarMinimizer:
         self,
         scalarizer: Scalarizer,
         bounds: np.ndarray,
-        problem = None,
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
-        **kwargs
+        problem = None,
     ):
         """
         Args:
@@ -156,12 +94,11 @@ class ScalarMinimizer:
                 of available preset solvers.
                 Defaults to None.
         """
-        self.presets = ["scipy_minimize", "scipy_de", "MixedIntegerMinimizer"]
+        self.presets = ["scipy_minimize", "scipy_de"]
+
         self._scalarizer = scalarizer
         self._bounds = bounds
-        self.problem = problem
         self._constraint_evaluator = constraint_evaluator
-
         if (method is None) or (method == "scipy_minimize"):
             # scipy minimize
             self._use_scipy = True
@@ -183,16 +120,15 @@ class ScalarMinimizer:
                 lambda x, _, **y: differential_evolution(x, **y), method_args={"polish": True}
             )
             self._method = scipy_de_method
-        
+
         #Add mixedIntegerSolver
         elif method == "MixedIntegerMinimizer":
-            # Extract the path to the bonmin solver from the kwargs, if provided.
-            minlp_solver_path = kwargs.get('minlp_solver_path', '/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin')
             self._use_scipy = False
             print("Scalarizer: ", self._scalarizer)
-            self._mixed_integer_minimizer = MixedIntegerMinimizer(self._scalarizer, self.problem, minlp_solver_path=minlp_solver_path)
+            self._mixed_integer_minimizer = MixedIntegerMinimizer(self._scalarizer, self.problem)
             self._method = ScalarMethod(lambda x, _, **y: self._mixed_integer_minimizer.minimize(x, **y))
         
+
         else:
             self._use_scipy = method._use_scipy
             self._method = method
@@ -237,7 +173,8 @@ class ScalarMinimizer:
             )
 
         return res
-    
+
+
 class DiscreteMinimizer:
     """Implements a class for finding the minimum value of a discrete of scalarized vectors.
     """
@@ -294,12 +231,80 @@ class DiscreteMinimizer:
             min_index = np.nanargmin(res)
             return {"x": min_index, "fun": min_value, "success": True}
 
+class MixedIntegerMinimizer:
+
+    """
+    Args:
+        problem (MOProblem): A scalarized MOProblem instance to be minimized.
+    """
+
+    def __init__(self, scalarized_objective: Callable, problem):
+        
+        # Try importing rbfopt
+        try:
+            global rbfopt
+            import rbfopt
+        except ImportError:
+            raise ScalarSolverException("The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again.")
+
+        
+        self.scalarized_objectives = scalarized_objective
+        self.problem = problem
+        self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
+        self.upper_bounds = [var.get_bounds()[1] for var in self.problem.variables]
+        self.var_types = [var.type for var in self.problem.variables]
+
+        print("Scalarized objectives: ", self.scalarized_objectives)
+        print(f"Problem: {self.problem}")
+        print(f"Lower bounds: {self.lower_bounds}")
+        print(f"Upper bounds: {self.upper_bounds}")
+        print(f"Var_types: {self.var_types}")
+        
+    def create_settings(self, max_evaluations=25, nlp_solver_path="ipopt", 
+                        minlp_solver_path='/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'):
+        settings = rbfopt.RbfoptSettings(
+            max_evaluations=max_evaluations,
+            global_search_method="solver", 
+            nlp_solver_path=nlp_solver_path, 
+            minlp_solver_path=minlp_solver_path,
+            print_solver_output=False
+            
+        )
+        return settings
     
+    def evaluate_objective(self, x):
+        result = self.scalarized_objective(x)
+        print(f"Evaluating at {x}, result: {result}")
+        return result
+    
+    def minimize(self, x0, **kwargs):
+        print(self.var_types)
+        bb = rbfopt.RbfoptUserBlackBox(
+            dimension =len(self.lower_bounds),
+            var_lower = self.lower_bounds,
+            var_upper = self.upper_bounds,
+            var_type = self.var_types,
+            obj_funct = lambda x, **kwargs: self.scalarized_objectives(x, **kwargs)[0]
+            
+            #lambda x: self.problem.objectives[0].evaluate(x).objectives[0]
+            #self.scalarized_objectives
+            #lambda x: self.scalarized_objectives.evaluate(x)
+            #self.evaluate_objective  # Use the method you've just defined
+
+        )
+        
+        null_stream = open(os.devnull, 'w')
+        alg = rbfopt.RbfoptAlgorithm(self.create_settings(), bb)
+        alg.set_output_stream(null_stream)
+
+        val, x, itercount, evalcount, fast_evalcount = alg.optimize()
+        null_stream.close()
+        
+        return {'x': x, 'fun': val, 'success': itercount > 0, 'itercount': itercount, 'evalcount': evalcount, 'fast_evalcount': fast_evalcount}
+
+
 
 if __name__ == "__main__":
-
-    #Discrete problem
-
     from desdeo_tools.scalarization.ASF import PointMethodASF
 
     ideal = np.array([0, 0, 0, 0])
