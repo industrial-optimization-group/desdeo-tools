@@ -12,10 +12,10 @@ pandas = "^1.0"
 scipy = "^1.2"
 numba = "^0.56"
 hvwfg = "^1.0.2"
-rbfopt = {optional = true}   # just an example version number
+rbfopt 
 
 [tool.poetry.extras]
-advanced_features = ["rbfopt"]
+mixed-integer-solver = ["rbfopt"]
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
