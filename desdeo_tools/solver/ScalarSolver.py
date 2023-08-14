@@ -188,6 +188,7 @@ class ScalarMinimizer:
             self._use_scipy = True
             # Assuming the gradient reqruies evaluation of the
             # scalarized function with out of bounds variable values.
+            self._bounds = self._bounds.astype(float)
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             self._method = ScalarMethod(minimize)
@@ -199,6 +200,7 @@ class ScalarMinimizer:
             # Assuming the gradient reqruies evaluation of the
             # scalarized function with out of bounds variable values.
             # only relevant if the 'polish' option is set in scipy's DE
+            self._bounds = self._bounds.astype(float)
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             scipy_de_method = ScalarMethod(
@@ -222,6 +224,7 @@ class ScalarMinimizer:
                 # Assuming the gradient reqruies evaluation of the
                 # scalarized function with out of bounds variable values.
                 # only relevant if the 'polish' option is set in scipy's DE
+                self._bounds = self._bounds.astype(float)
                 self._bounds[:, 0] += 1e-6
                 self._bounds[:, 1] -= 1e-6
 
