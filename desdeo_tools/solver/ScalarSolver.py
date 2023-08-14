@@ -86,7 +86,7 @@ class MixedIntegerMinimizer:
             raise ScalarSolverException("The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again.")
 
         
-        self.scalarized_objective = scalarized_objective
+        self.scalarized_objectives = scalarized_objective
         self.problem = problem
         self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
         self.upper_bounds = [var.get_bounds()[1] for var in self.problem.variables]
@@ -103,11 +103,6 @@ class MixedIntegerMinimizer:
             
         )
         return settings
-    
-    def evaluate_objective(self, x):
-        result = self.scalarized_objective(x)
-        print(f"Evaluating at {x}, result: {result}")
-        return result
     
     def minimize(self, x0, **kwargs):
         print(self.var_types)
