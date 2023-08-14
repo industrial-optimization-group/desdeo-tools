@@ -8,7 +8,7 @@ from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
 from desdeo_tools.scalarization.ASF import PointMethodASF
-from desdeo_problem import variable_builder, ScalarObjective, MOProblem
+#from desdeo_problem import variable_builder, ScalarObjective, MOProblem
 
 
 import rbfopt
