@@ -156,7 +156,6 @@ class ScalarMinimizer:
         problem = None,
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
-        scipy_method=''
         
     ):
         """
@@ -183,7 +182,6 @@ class ScalarMinimizer:
         self.problem = problem
         self._constraint_evaluator = constraint_evaluator
         self.method = method
-        self.scipy_method = scipy_method
 
         if (method is None) or (method == "scipy_minimize"):
             # scipy minimize
@@ -253,13 +251,8 @@ class ScalarMinimizer:
                 scipy_cons = ()
 
             #res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons)
-            res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons, method=self.scipy_method)
-            res["method"] = self.scipy_method
+            res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons)
 
-            if self._use_scipy:
-                assert res['method'] == self.scipy_method, f"Unexpected optimization method used. Expected {self.scipy_method} but got {res['method']}."
-            
-            print(res["method"])
             # Modify this line to pass the desired method
             #res = self._method(self._scalarizer, x0, bounds=self._bounds, method=self.scipy_method, constraint_evaluator=scipy_cons)
 
