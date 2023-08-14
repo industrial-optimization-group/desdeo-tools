@@ -12,6 +12,10 @@ pandas = "^1.0"
 scipy = "^1.2"
 numba = "^0.56"
 hvwfg = "^1.0.2"
+rbfopt = {version = "^0.8", optional = true}   # just an example version number
+
+[tool.poetry.extras]
+advanced_features = ["rbfopt"]
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
@@ -28,10 +32,6 @@ sphinx_rtd_theme = "^1.2.0"
 sphinx_autodoc_typehints = "^1.10.3"
 sphinx-automodapi = "^0.12"
 rstcheck = "^3.3.1"
-
- extras_require={
-        'advanced_features': ['rbfopt'],
-    }
 
 [tool.ruff]
 # Enable the pycodestyle (`E`) and Pyflakes (`F`) rules by default.
