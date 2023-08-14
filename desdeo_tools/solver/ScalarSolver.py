@@ -6,7 +6,10 @@ import os
 from typing import Callable, Dict, Optional, Union
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
+
 from desdeo_tools.scalarization.ASF import PointMethodASF
+#from desdeo_problem import variable_builder, ScalarObjective, MOProblem
+
 
 #import rbfopt
 
@@ -37,7 +40,7 @@ class ScalarMethod:
         self._method_args = method_args
         self._use_scipy = use_scipy
 
-    def __call__(self, obj_fun: Callable, x0: np.ndarray, bounds: np.ndarray, constraint_evaluator: Callable, method=None) -> Dict:
+    def __call__(self, obj_fun: Callable, x0: np.ndarray, bounds: np.ndarray, constraint_evaluator: Callable) -> Dict:
         """Minimizes a scalar valued function.
 
         Args:
@@ -59,19 +62,12 @@ class ScalarMethod:
                 variables found, 'fun' the optimal value of the optimized function, and 'success' a boolean
                 indicating whether the optimization was conducted successfully.
         """
-        
-        if method:
-            if self._method_args is not None:
-                res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator, method=method, **self._method_args)
-            else:
-                res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator, method=method)
+        if self._method_args is not None:
+            res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator, **self._method_args)
         else:
-            if self._method_args is not None:
-                res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator, **self._method_args)
-            else:
-                res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator)
+            res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator)
+
         return res
-    
 
 class MixedIntegerMinimizer:
 
@@ -81,7 +77,7 @@ class MixedIntegerMinimizer:
     """
 
     def __init__(self, scalarized_objective: Callable, problem):
-        #problem: MOProblem -> problem
+        
         # Try importing rbfopt
         try:
             global rbfopt
@@ -89,17 +85,12 @@ class MixedIntegerMinimizer:
         except ImportError:
             raise ScalarSolverException("The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again.")
 
+        
         self.scalarized_objective = scalarized_objective
         self.problem = problem
         self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
         self.upper_bounds = [var.get_bounds()[1] for var in self.problem.variables]
         self.var_types = [var.type for var in self.problem.variables]
-
-        print("Scalarized objectives: ", self.scalarized_objective)
-        print(f"Problem: {self.problem}")
-        print(f"Lower bounds: {self.lower_bounds}")
-        print(f"Upper bounds: {self.upper_bounds}")
-        print(f"Var_types: {self.var_types}")
         
     def create_settings(self, max_evaluations=25, nlp_solver_path="ipopt", 
                         minlp_solver_path='/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'):
@@ -126,12 +117,6 @@ class MixedIntegerMinimizer:
             var_upper = self.upper_bounds,
             var_type = self.var_types,
             obj_funct = lambda x, **kwargs: scalarized_objectives(x, **kwargs)[0]
-            
-            #lambda x: self.problem.objectives[0].evaluate(x).objectives[0]
-            #self.scalarized_objectives
-            #lambda x: self.scalarized_objectives.evaluate(x)
-            #self.evaluate_objective  # Use the method you've just defined
-
         )
         
         null_stream = open(os.devnull, 'w')
@@ -156,7 +141,7 @@ class ScalarMinimizer:
         problem = None,
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
-        
+        **kwargs
     ):
         """
         Args:
@@ -181,18 +166,15 @@ class ScalarMinimizer:
         self._bounds = bounds
         self.problem = problem
         self._constraint_evaluator = constraint_evaluator
-        self.method = method
 
         if (method is None) or (method == "scipy_minimize"):
             # scipy minimize
             self._use_scipy = True
             # Assuming the gradient reqruies evaluation of the
             # scalarized function with out of bounds variable values.
-            self._bounds = self._bounds.astype(float)
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             self._method = ScalarMethod(minimize)
-            #self._method = ScalarMethod(lambda f, x0, **kwargs: minimize(f, x0, method=kwargs.get('method'), bounds=kwargs.get('bounds'), constraints=kwargs.get('constraint_evaluator')))
 
         elif method == "scipy_de":
             # Scipy differential evolution
@@ -200,7 +182,6 @@ class ScalarMinimizer:
             # Assuming the gradient reqruies evaluation of the
             # scalarized function with out of bounds variable values.
             # only relevant if the 'polish' option is set in scipy's DE
-            self._bounds = self._bounds.astype(float)
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             scipy_de_method = ScalarMethod(
@@ -210,10 +191,11 @@ class ScalarMinimizer:
         
         #Add mixedIntegerSolver
         elif method == "MixedIntegerMinimizer":
-            from desdeo_problem import MOProblem
+            # Extract the path to the bonmin solver from the kwargs, if provided.
+            minlp_solver_path = kwargs.get('minlp_solver_path', '/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin')
             self._use_scipy = False
             print("Scalarizer: ", self._scalarizer)
-            self._mixed_integer_minimizer = MixedIntegerMinimizer(self._scalarizer, self.problem)
+            self._mixed_integer_minimizer = MixedIntegerMinimizer(self._scalarizer, self.problem, minlp_solver_path=minlp_solver_path)
             self._method = ScalarMethod(lambda x, _, **y: self._mixed_integer_minimizer.minimize(x, **y))
         
         else:
@@ -224,7 +206,6 @@ class ScalarMinimizer:
                 # Assuming the gradient reqruies evaluation of the
                 # scalarized function with out of bounds variable values.
                 # only relevant if the 'polish' option is set in scipy's DE
-                self._bounds = self._bounds.astype(float)
                 self._bounds[:, 0] += 1e-6
                 self._bounds[:, 1] -= 1e-6
 
@@ -253,11 +234,7 @@ class ScalarMinimizer:
             else:
                 scipy_cons = ()
 
-            #res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons)
             res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons)
-
-            # Modify this line to pass the desired method
-            #res = self._method(self._scalarizer, x0, bounds=self._bounds, method=self.scipy_method, constraint_evaluator=scipy_cons)
 
         else:
             res = self._method(
@@ -265,8 +242,7 @@ class ScalarMinimizer:
             )
 
         return res
-
-
+    
 class DiscreteMinimizer:
     """Implements a class for finding the minimum value of a discrete of scalarized vectors.
     """
@@ -323,12 +299,13 @@ class DiscreteMinimizer:
             min_index = np.nanargmin(res)
             return {"x": min_index, "fun": min_value, "success": True}
 
+    
+
 if __name__ == "__main__":
 
     #Discrete problem
 
     from desdeo_tools.scalarization.ASF import PointMethodASF
-    from desdeo_tools.solver.ScalarSolver import DiscreteMinimizer, Scalarizer
 
     ideal = np.array([0, 0, 0, 0])
     nadir = np.array([1, 1, 1, 1])
@@ -376,6 +353,7 @@ if __name__ == "__main__":
     nadir = np.array([-10,0])
     ref_point = np.array([-7,0])
 
+
     #Bounds
     l_bounds=[0, 1]
     u_bounds=[5, 5]
@@ -395,59 +373,3 @@ if __name__ == "__main__":
     minimizer = ScalarMinimizer(scalarized_objectives, bounds, problem, minlp_solver_path, method="MixedIntegerMinimizer")
     res = minimizer.minimize(initial_guess)
     print(res)
-
-
-    # Test for slsqp in scalarsolver
-    import numpy as np
-    #from desdeo_tools.solver.ScalarSolver import ScalarMinimizer
-    from scipy.optimize import NonlinearConstraint
-    from desdeo_tools.scalarization.Scalarizer import Scalarizer
-    
-    # objectives
-    
-    def volume(r, h):
-        return np.pi*r**2*h
-    
-    def area(r, h):
-        return 2*np.pi**2 + np.pi*r*h
-    
-    def objective(xs):
-        # xs is a 2d array like, which has different values for r and h on its first and second columns respectively.
-        xs = np.atleast_2d(xs)
-        return np.stack((volume(xs[:, 0], xs[:, 1]), -area(xs[:, 0], xs[:, 1]))).T
-    
-    # bounds
-    
-    r_bounds = np.array([2.5, 15])
-    h_bounds = np.array([10, 50])
-    bounds = np.stack((r_bounds, h_bounds))
-    
-    # constraints
-    
-    def con_golden(xs):
-        # constraints are defined in DESDEO in a way were a positive value indicates an agreement with a constraint, and
-        # a negative one a disagreement.
-        xs = np.atleast_2d(xs)
-        return -(xs[:, 0] / xs[:, 1] - 1.618)
-    
-    def simple_sum(xs):
-        xs = np.atleast_2d(xs)
-        return np.sum(xs, axis=1)
-    
-    scalarized_objective = Scalarizer(objective, simple_sum)
-
-    # by setting the method to be none, we will actually be using the minimizer implemented
-    # in the SciPy library.
-    
-    minimizer = ScalarMinimizer(scalarized_objective, bounds, constraint_evaluator=con_golden, scipy_method="SLSQP")
-    
-    # we need to supply an initial guess
-    x0 = np.array([2.6, 11])
-    sum_res = minimizer.minimize(x0)
-    
-    # the optimal solution and function value
-    x_optimal, f_optimal = sum_res["x"], sum_res["fun"]
-    objective_optimal = objective(sum_res["x"]).squeeze()
-    
-    print(x_optimal[0], x_optimal[1])
-    print(objective_optimal[0], -objective_optimal[1])
