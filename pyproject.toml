@@ -12,7 +12,7 @@ pandas = "^1.0"
 scipy = "^1.2"
 numba = "^0.56"
 hvwfg = "^1.0.2"
-rbfopt 
+rbfopt = "*"
 
 [tool.poetry.extras]
 mixed-integer-solver = ["rbfopt"]
