@@ -1,6 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/desdeo-tools.svg)](https://badge.fury.io/py/desdeo-tools)
 [![Documentation Status](https://readthedocs.org/projects/desdeo-tools/badge/?version=latest)](https://desdeo-tools.readthedocs.io/en/latest/?badge=latest)
-[![automate-DESDEO-tools](https://github.com/Sepuliini/desdeo-tools/actions/workflows/automate-DESDEO-tools.yml/badge.svg)](https://github.com/Sepuliini/desdeo-tools/actions/workflows/automate-DESDEO-tools.yml)
+[![DESDEO-tools](https://github.com/Sepuliini/desdeo-tools/actions/workflows/automate-DESDEO-tools.yml/badge.svg)](https://github.com/Sepuliini/desdeo-tools/actions/workflows/DESDEO-tools.yml)
 
 # desdeo-tools
 
