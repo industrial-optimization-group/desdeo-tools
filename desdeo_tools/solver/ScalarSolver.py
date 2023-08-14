@@ -6,7 +6,6 @@ import os
 from typing import Callable, Dict, Optional, Union
 from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
-
 from desdeo_tools.scalarization.ASF import PointMethodASF
 
 #import rbfopt
@@ -81,8 +80,8 @@ class MixedIntegerMinimizer:
         problem (MOProblem): A scalarized MOProblem instance to be minimized.
     """
 
-    def __init__(self, scalarized_objective: Callable, problem: MOProblem):
-
+    def __init__(self, scalarized_objective: Callable, problem):
+        #problem: MOProblem -> problem
         # Try importing rbfopt
         try:
             global rbfopt
