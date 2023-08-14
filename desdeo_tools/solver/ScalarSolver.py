@@ -11,7 +11,7 @@ from desdeo_tools.scalarization.ASF import PointMethodASF
 #from desdeo_problem import variable_builder, ScalarObjective, MOProblem
 
 
-import rbfopt
+#import rbfopt
 
 
 class ScalarSolverException(Exception):
@@ -84,6 +84,14 @@ class MixedIntegerMinimizer:
     """
 
     def __init__(self, scalarized_objective: Callable, problem: MOProblem):
+
+        # Try importing rbfopt
+        try:
+            global rbfopt
+            import rbfopt
+        except ImportError:
+            raise ScalarSolverException("The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again.")
+
         self.scalarized_objective = scalarized_objective
         self.problem = problem
         self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
