@@ -272,6 +272,63 @@ class ScalarMinimizer:
 
         return res
 
+
+class DiscreteMinimizer:
+    """Implements a class for finding the minimum value of a discrete of scalarized vectors.
+    """
+
+    def __init__(
+        self,
+        discrete_scalarizer: DiscreteScalarizer,
+        constraint_evaluator: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+    ):
+        """
+        Args:
+            discrete_scalarizer (DiscreteScalarizer): A discrete scalarizer
+                which takes as its arguments an array of vectors and returns a
+                scalar value for each vector.
+            constraint_evaluator (Optional[Callable[[np.ndarray],
+            np.ndarray]], optional): An evaluator which returns True if a
+                given vector(s) adheres to given constraints, and False
+                otherwise. Defaults to None.
+        """
+        self._scalarizer = discrete_scalarizer
+        self._constraint_evaluator = constraint_evaluator
+
+    def minimize(self, vectors: np.ndarray) -> dict:
+        """Find the index of the element in vectors which minimizes the
+        scalar value returned by the scalarizer. If multiple minimum values
+        are found, returns the index of the first occurrence.
+
+        Args:
+            vectors (np.ndarray): The vectors for which the minimum scalar
+                value should be computed for.
+
+        Raises:
+            ScalarSolverException: None of the given vectors adhere to the
+                given constraints.
+
+        Returns:
+            Dict: A dictionary with at least the following entries: 'x' indicating the optimal
+                variables found, 'fun' the optimal value of the optimized function, and 'success' a boolean
+                indicating whether the optimizaton was conducted successfully.
+        """
+        if self._constraint_evaluator is None:
+            res = self._scalarizer(vectors)
+            min_value = np.nanmin(res)
+            min_index = np.nanargmin(res)
+            return {"x": min_index, "fun": min_value, "success": True}
+        else:
+            bad_con_mask = ~self._constraint_evaluator(vectors)
+            if np.all(bad_con_mask):
+                raise ScalarSolverException("None of the supplied vectors adhere to the given " "constraint function.")
+            tmp = np.copy(vectors)
+            tmp[bad_con_mask] = np.nan
+            res = self._scalarizer(tmp)
+            min_value = np.nanmin(res)
+            min_index = np.nanargmin(res)
+            return {"x": min_index, "fun": min_value, "success": True}
+
 if __name__ == "__main__":
 
     #Discrete problem
