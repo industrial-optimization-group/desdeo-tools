@@ -8,8 +8,6 @@ from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
 from desdeo_tools.scalarization.ASF import PointMethodASF
-#from desdeo_problem import variable_builder, ScalarObjective, MOProblem
-
 
 #import rbfopt
 
@@ -215,6 +213,7 @@ class ScalarMinimizer:
         
         #Add mixedIntegerSolver
         elif method == "MixedIntegerMinimizer":
+            from desdeo_problem import MOProblem
             self._use_scipy = False
             print("Scalarizer: ", self._scalarizer)
             self._mixed_integer_minimizer = MixedIntegerMinimizer(self._scalarizer, self.problem)
