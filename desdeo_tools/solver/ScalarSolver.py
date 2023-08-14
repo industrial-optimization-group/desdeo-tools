@@ -156,7 +156,7 @@ class ScalarMinimizer:
         problem = None,
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
-        scipy_method='SLSQP'  # Set the default to SLSQP,
+        scipy_method=''
         
     ):
         """
@@ -184,8 +184,6 @@ class ScalarMinimizer:
         self._constraint_evaluator = constraint_evaluator
         self.method = method
         self.scipy_method = scipy_method
-        
-        print(self.scipy_method)
 
         if (method is None) or (method == "scipy_minimize"):
             # scipy minimize
