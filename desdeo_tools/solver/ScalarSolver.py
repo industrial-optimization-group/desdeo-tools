@@ -14,7 +14,7 @@ from desdeo_tools.scalarization.ASF import PointMethodASF
 #from desdeo_problem import variable_builder, ScalarObjective, MOProblem
 
 
-import rbfopt
+#import rbfopt
 
 
 class ScalarSolverException(Exception):
