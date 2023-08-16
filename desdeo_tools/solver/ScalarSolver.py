@@ -161,9 +161,9 @@ class ScalarMinimizer:
         self,
         scalarizer: Scalarizer,
         bounds: np.ndarray,
-        problem = None,
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
+        problem = None,
         **kwargs
     ):
         """
