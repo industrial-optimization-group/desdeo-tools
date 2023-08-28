@@ -80,7 +80,7 @@ class MixedIntegerMinimizer:
     Args:
         scalarized_objective (Callable): The objective function that has been scalarized 
                                          and ready for minimization.
-        problem (MOProblem): A scalarized MOProblem instance to be minimized.
+        problem (MOProblem): A MOProblem instance required to get variable types.
         minlp_solver_path (str): The path to the bonmin solver.
     """
 
@@ -115,7 +115,6 @@ class MixedIntegerMinimizer:
             max_evaluations=max_evaluations,
             global_search_method="solver", 
             nlp_solver_path=nlp_solver_path, 
-            #minlp_solver_path=minlp_solver_path,
             minlp_solver_path=self.minlp_solver_path,
             print_solver_output=False  
         )
@@ -134,12 +133,6 @@ class MixedIntegerMinimizer:
             var_upper = self.upper_bounds,
             var_type = self.var_types,
             obj_funct = lambda x, **kwargs: scalarized_objectives(x, **kwargs)[0]
-            
-            #lambda x: self.problem.objectives[0].evaluate(x).objectives[0]
-            #self.scalarized_objectives
-            #lambda x: self.scalarized_objectives.evaluate(x)
-            #self.evaluate_objective  # Use the method you've just defined
-
         )
         
         null_stream = open(os.devnull, 'w')
