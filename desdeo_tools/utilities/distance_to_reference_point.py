@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Tuple, Type
+from typing import Tuple
 from desdeo_tools.scalarization import SimpleASF
 
 

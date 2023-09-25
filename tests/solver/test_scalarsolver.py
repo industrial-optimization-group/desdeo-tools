@@ -139,7 +139,8 @@ def test_discrete_solver_with_con():
     nadir = np.array([1, 1, 1, 1])
 
     asf = PointMethodASF(nadir, ideal)
-    con = lambda x: x[:, 0] > 0.2
+    def con(x):
+        return x[:, 0] > 0.2
     dscalarizer = DiscreteScalarizer(asf, {"reference_point": nadir})
     dminimizer = DiscreteMinimizer(dscalarizer, constraint_evaluator=con)
 

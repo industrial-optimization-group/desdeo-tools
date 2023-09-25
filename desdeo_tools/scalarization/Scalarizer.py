@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Dict
 
 
 class Scalarizer:

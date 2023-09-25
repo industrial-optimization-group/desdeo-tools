@@ -2,8 +2,7 @@ import abc
 import numpy as np
 
 from abc import abstractmethod
-from os import path
-from typing import List, Union
+from typing import Union
 
 
 class MOEADSFError(Exception):

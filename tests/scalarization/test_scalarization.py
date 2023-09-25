@@ -1,4 +1,5 @@
-import pytest
+import pytest # noqa F401
+
 import numpy as np
 
 from desdeo_tools.scalarization.Scalarizer import Scalarizer, DiscreteScalarizer

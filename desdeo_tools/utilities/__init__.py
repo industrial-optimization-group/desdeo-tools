@@ -16,6 +16,7 @@ __all__ = [
     "polytope_dominates",
     "generate_polytopes",
     "inherently_nondominated",
+    "distance_to_reference_point",
 ]
 
 from desdeo_tools.utilities.polytopes import (
