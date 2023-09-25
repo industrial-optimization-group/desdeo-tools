@@ -28,8 +28,11 @@ class EpsilonConstraintMethod:
     """
 
     def __init__(
-            self, objectives: Callable, to_be_minimized: int, epsilons: np.ndarray,
-            constraints: Optional[Callable]
+        self,
+        objectives: Callable,
+        to_be_minimized: int,
+        epsilons: np.ndarray,
+        constraints: Optional[Callable],
     ):
         self.objectives = objectives
         self._to_be_minimized = to_be_minimized
@@ -51,21 +54,30 @@ class EpsilonConstraintMethod:
 
         # evaluate epsilon constraint function "left-side" values with given decision variables
         epsilon_left_side = np.array(
-            [val for nrow, row in enumerate(self.objectives(xs))
-             for ival, val in enumerate(row) if ival != self._to_be_minimized
-             ])
+            [
+                val
+                for nrow, row in enumerate(self.objectives(xs))
+                for ival, val in enumerate(row)
+                if ival != self._to_be_minimized
+            ]
+        )
 
         if len(epsilon_left_side) != len(self.epsilons):
-            msg = ("The lenght of the epsilons array ({}) must match the total number of objectives - 1 ({})."
-                   ).format(len(self.epsilons), len(self.objectives(xs)) - 1)
+            msg = (
+                "The lenght of the epsilons array ({}) must match the total number of objectives - 1 ({})."
+            ).format(len(self.epsilons), len(self.objectives(xs)) - 1)
             raise ECMError(msg)
 
         # evaluate values of epsilon constraint functions
-        e: np.ndarray = np.array([-(f - v) for f, v in zip(epsilon_left_side, self.epsilons)])
+        e: np.ndarray = np.array(
+            [-(f - v) for f, v in zip(epsilon_left_side, self.epsilons)]
+        )
 
         if self.constraints(xs) is not None:
             c = self.constraints(xs)
-            return np.concatenate([c, e], axis=None)  # does it work with multiple constraints?
+            return np.concatenate(
+                [c, e], axis=None
+            )  # does it work with multiple constraints?
         else:
             return e
 
@@ -80,7 +92,12 @@ class EpsilonConstraintMethod:
             Value of objective function to be minimized.
         """
         if np.shape(objective_vector)[0] > 1:  # more rows than one
-            return np.array([objective_vector[i][self._to_be_minimized] for i, _ in enumerate(objective_vector)])
+            return np.array(
+                [
+                    objective_vector[i][self._to_be_minimized]
+                    for i, _ in enumerate(objective_vector)
+                ]
+            )
         else:
             return objective_vector[0][self._to_be_minimized]
 
@@ -103,7 +120,13 @@ if __name__ == "__main__":
     def objective(xs):
         # xs is a 2d array like, which has different values for r and h on its first and second columns respectively.
         xs = np.atleast_2d(xs)
-        return np.stack((volume(xs[:, 0], xs[:, 1]), -area(xs[:, 0], xs[:, 1]), weight(volume(xs[:, 0], xs[:, 1])))).T
+        return np.stack(
+            (
+                volume(xs[:, 0], xs[:, 1]),
+                -area(xs[:, 0], xs[:, 1]),
+                weight(volume(xs[:, 0], xs[:, 1])),
+            )
+        ).T
 
     # bounds for decision variables
     r_bounds = np.array([2.5, 15])
@@ -125,7 +148,9 @@ if __name__ == "__main__":
 
     # set upper bound(s) for the other objectives, in the same order than which corresponding objective functions
     # are defined
-    epsil = np.array([2000, -100])  # multiply the epsilons with -1, if the constraint is of form f_i(x) >= e_i
+    epsil = np.array(
+        [2000, -100]
+    )  # multiply the epsilons with -1, if the constraint is of form f_i(x) >= e_i
 
     # create an instance of EpsilonConstraintMethod-class for given problem
     eps = EpsilonConstraintMethod(objective, obj_min, epsil, constraints=con_golden)
@@ -141,7 +166,9 @@ if __name__ == "__main__":
 
     # starting point
     x0 = np.array([2, 11])
-    minimizer = ScalarMinimizer(scalarized_objective, bounds, constraint_evaluator=cons_evaluate, method=None)
+    minimizer = ScalarMinimizer(
+        scalarized_objective, bounds, constraint_evaluator=cons_evaluate, method=None
+    )
 
     # minimize
     res = minimizer.minimize(x0)
@@ -150,6 +177,8 @@ if __name__ == "__main__":
     final_V, final_A, final_W = final_obj[0], final_obj[1], final_obj[2]
 
     print(f"Final cake specs: radius: {final_r}cm, height: {final_h}cm.")
-    print(f"Final cake dimensions: volume: {final_V}, area: {-final_A}, weight: {final_W}.")
+    print(
+        f"Final cake dimensions: volume: {final_V}, area: {-final_A}, weight: {final_W}."
+    )
     print(final_r / final_h)
     print(res)

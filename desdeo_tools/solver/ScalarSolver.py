@@ -1,4 +1,4 @@
-# THIS CELL CAN BE REMOVED WHEN TOOLS AND PROBLEM REPOSITORYS 
+# THIS CELL CAN BE REMOVED WHEN TOOLS AND PROBLEM REPOSITORYS
 # HAVE BEEN UPDATED
 
 """Implements methods for solving scalar valued functions.
@@ -11,10 +11,11 @@ from desdeo_tools.scalarization.Scalarizer import DiscreteScalarizer, Scalarizer
 from scipy.optimize import NonlinearConstraint, differential_evolution, minimize
 
 from desdeo_tools.scalarization.ASF import PointMethodASF
-#from desdeo_problem import variable_builder, ScalarObjective, MOProblem
+
+# from desdeo_problem import variable_builder, ScalarObjective, MOProblem
 
 
-#import rbfopt
+# import rbfopt
 
 
 class ScalarSolverException(Exception):
@@ -25,7 +26,9 @@ class ScalarMethod:
     """A class the define and implement methods for minimizing scalar valued functions.
     """
 
-    def __init__(self, method: Callable, method_args=None, use_scipy: Optional[bool] = False):
+    def __init__(
+        self, method: Callable, method_args=None, use_scipy: Optional[bool] = False
+    ):
         """
         Args:
             method (Callable): A callable minimizer function which expects a
@@ -43,7 +46,13 @@ class ScalarMethod:
         self._method_args = method_args
         self._use_scipy = use_scipy
 
-    def __call__(self, obj_fun: Callable, x0: np.ndarray, bounds: np.ndarray, constraint_evaluator: Callable) -> Dict:
+    def __call__(
+        self,
+        obj_fun: Callable,
+        x0: np.ndarray,
+        bounds: np.ndarray,
+        constraint_evaluator: Callable,
+    ) -> Dict:
         """Minimizes a scalar valued function.
 
         Args:
@@ -66,9 +75,17 @@ class ScalarMethod:
                 indicating whether the optimization was conducted successfully.
         """
         if self._method_args is not None:
-            res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator, **self._method_args)
+            res = self._method(
+                obj_fun,
+                x0,
+                bounds=bounds,
+                constraints=constraint_evaluator,
+                **self._method_args,
+            )
         else:
-            res = self._method(obj_fun, x0, bounds=bounds, constraints=constraint_evaluator)
+            res = self._method(
+                obj_fun, x0, bounds=bounds, constraints=constraint_evaluator
+            )
 
         return res
 
@@ -85,19 +102,26 @@ class MixedIntegerMinimizer:
     """
 
     def __init__(self, scalarized_objective: Callable, problem, minlp_solver_path: str):
-        
+
         # Try importing rbfopt
         try:
             global rbfopt
             import rbfopt
         except ImportError:
-            raise ScalarSolverException("The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again.")
-        
+            raise ScalarSolverException(
+                "The library 'rbfopt' is required for using MixedIntegerMinimizer. Please install it and try again."
+            )
+
         self.scalarized_objective = scalarized_objective
         self.problem = problem
         self.lower_bounds = [var.get_bounds()[0] for var in self.problem.variables]
         self.upper_bounds = [var.get_bounds()[1] for var in self.problem.variables]
-        var_types = np.array(["I" if var.type.lower() in ["i", "integervariable", "integer"] else "R" for var in problem.variables])
+        var_types = np.array(
+            [
+                "I" if var.type.lower() in ["i", "integervariable", "integer"] else "R"
+                for var in problem.variables
+            ]
+        )
         self.var_types = var_types
         self.minlp_solver_path = minlp_solver_path
 
@@ -108,41 +132,47 @@ class MixedIntegerMinimizer:
         print(f"Var_types: {self.var_types}")
         print(f"minlp_solver_path: {self.minlp_solver_path}")
 
-        
     def create_settings(self, max_evaluations=25, nlp_solver_path="ipopt"):
         settings = rbfopt.RbfoptSettings(
             #'/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'
             max_evaluations=max_evaluations,
-            global_search_method="solver", 
-            nlp_solver_path=nlp_solver_path, 
+            global_search_method="solver",
+            nlp_solver_path=nlp_solver_path,
             minlp_solver_path=self.minlp_solver_path,
-            print_solver_output=False  
+            print_solver_output=False,
         )
         return settings
-    
+
     def evaluate_objective(self, x):
         result = self.scalarized_objective(x)
         print(f"Evaluating at {x}, result: {result}")
         return result
-    
+
     def minimize(self, x0, **kwargs):
         print(self.var_types)
         bb = rbfopt.RbfoptUserBlackBox(
-            dimension =len(self.lower_bounds),
-            var_lower = self.lower_bounds,
-            var_upper = self.upper_bounds,
-            var_type = self.var_types,
-            obj_funct = lambda x, **kwargs: scalarized_objectives(x, **kwargs)[0]
+            dimension=len(self.lower_bounds),
+            var_lower=self.lower_bounds,
+            var_upper=self.upper_bounds,
+            var_type=self.var_types,
+            obj_funct=lambda x, **kwargs: scalarized_objectives(x, **kwargs)[0],
         )
-        
-        null_stream = open(os.devnull, 'w')
+
+        null_stream = open(os.devnull, "w")
         alg = rbfopt.RbfoptAlgorithm(self.create_settings(), bb)
         alg.set_output_stream(null_stream)
 
         val, x, itercount, evalcount, fast_evalcount = alg.optimize()
         null_stream.close()
-        
-        return {'x': x, 'fun': val, 'success': itercount > 0, 'itercount': itercount, 'evalcount': evalcount, 'fast_evalcount': fast_evalcount}
+
+        return {
+            "x": x,
+            "fun": val,
+            "success": itercount > 0,
+            "itercount": itercount,
+            "evalcount": evalcount,
+            "fast_evalcount": fast_evalcount,
+        }
 
 
 class ScalarMinimizer:
@@ -156,8 +186,8 @@ class ScalarMinimizer:
         bounds: np.ndarray,
         constraint_evaluator: Callable = None,
         method: Optional[Union[ScalarMethod, str]] = None,
-        problem = None,
-        **kwargs
+        problem=None,
+        **kwargs,
     ):
         """
         Args:
@@ -182,19 +212,29 @@ class ScalarMinimizer:
         self._bounds = bounds
         self.problem = problem
         self._constraint_evaluator = constraint_evaluator
-        
+
         if method is None or method == "MixedIntegerMinimizer":
             # Check if problem contains integer variables
-            integer_vars = any([var.type.lower() in ["i", "integervariable", "integer"] for var in problem.variables])
+            integer_vars = any(
+                [
+                    var.type.lower() in ["i", "integervariable", "integer"]
+                    for var in problem.variables
+                ]
+            )
             if integer_vars:
                 # Use MixedIntegerMinimizer if integer variables are found
-                minlp_solver_path = kwargs.get('minlp_solver_path', None)
+                minlp_solver_path = kwargs.get("minlp_solver_path", None)
                 if minlp_solver_path is None:
-                    raise ValueError("Please provide a path to the MinLP solver via 'minlp_solver_path' keyword argument.")
+                    raise ValueError(
+                        "Please provide a path to the MinLP solver via 'minlp_solver_path' keyword argument."
+                    )
                 self._use_scipy = False
-                self._mixed_integer_minimizer = MixedIntegerMinimizer(self._scalarizer, problem, minlp_solver_path=minlp_solver_path)
-                self._method = ScalarMethod(lambda x, _, **y: self._mixed_integer_minimizer.minimize(x, **y))
-
+                self._mixed_integer_minimizer = MixedIntegerMinimizer(
+                    self._scalarizer, problem, minlp_solver_path=minlp_solver_path
+                )
+                self._method = ScalarMethod(
+                    lambda x, _, **y: self._mixed_integer_minimizer.minimize(x, **y)
+                )
 
         elif (method is None) or (method == "scipy_minimize"):
             # scipy minimize
@@ -214,10 +254,11 @@ class ScalarMinimizer:
             self._bounds[:, 0] += 1e-6
             self._bounds[:, 1] -= 1e-6
             scipy_de_method = ScalarMethod(
-                lambda x, _, **y: differential_evolution(x, **y), method_args={"polish": True}
+                lambda x, _, **y: differential_evolution(x, **y),
+                method_args={"polish": True},
             )
             self._method = scipy_de_method
-        
+
         else:
             self._use_scipy = method._use_scipy
             self._method = method
@@ -254,11 +295,19 @@ class ScalarMinimizer:
             else:
                 scipy_cons = ()
 
-            res = self._method(self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=scipy_cons)
+            res = self._method(
+                self._scalarizer,
+                x0,
+                bounds=self._bounds,
+                constraint_evaluator=scipy_cons,
+            )
 
         else:
             res = self._method(
-                self._scalarizer, x0, bounds=self._bounds, constraint_evaluator=self._constraint_evaluator
+                self._scalarizer,
+                x0,
+                bounds=self._bounds,
+                constraint_evaluator=self._constraint_evaluator,
             )
 
         return res
@@ -312,13 +361,17 @@ class DiscreteMinimizer:
         else:
             bad_con_mask = ~self._constraint_evaluator(vectors)
             if np.all(bad_con_mask):
-                raise ScalarSolverException("None of the supplied vectors adhere to the given " "constraint function.")
+                raise ScalarSolverException(
+                    "None of the supplied vectors adhere to the given "
+                    "constraint function."
+                )
             tmp = np.copy(vectors)
             tmp[bad_con_mask] = np.nan
             res = self._scalarizer(tmp)
             min_value = np.nanmin(res)
             min_index = np.nanargmin(res)
             return {"x": min_index, "fun": min_value, "success": True}
+
 
 if __name__ == "__main__":
     from desdeo_tools.scalarization.ASF import PointMethodASF
@@ -331,7 +384,12 @@ if __name__ == "__main__":
     dminimizer = DiscreteMinimizer(dscalarizer)
 
     non_dominated_points = np.array(
-        [[0.2, 0.4, 0.6, 0.8], [0.4, 0.2, 0.6, 0.8], [0.6, 0.4, 0.2, 0.8], [0.4, 0.8, 0.6, 0.2]]
+        [
+            [0.2, 0.4, 0.6, 0.8],
+            [0.4, 0.2, 0.6, 0.8],
+            [0.6, 0.4, 0.2, 0.8],
+            [0.4, 0.8, 0.6, 0.2],
+        ]
     )
 
     z = np.array([0.55, 0.4, 0.6, 0.8])

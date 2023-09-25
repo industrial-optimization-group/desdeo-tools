@@ -95,15 +95,20 @@ def validate_specified_solutions(indices: np.ndarray, n_solutions: int) -> None:
     if indices.shape[0] < 1:
         raise ValidationError("Please specify at least one (non-)preferred solution.")
     if not isinstance(indices, (np.ndarray, list)):
-        raise ValidationError("Please specify index/indices of (non-)preferred solutions in a list, even if there is only "
-                           "one.")
+        raise ValidationError(
+            "Please specify index/indices of (non-)preferred solutions in a list, even if there is only "
+            "one."
+        )
     if not all(0 <= i <= (n_solutions - 1) for i in indices):
-        msg = "indices of (non-)preferred solutions should be between 0 and {}. Current indices are {}." \
-            .format(n_solutions - 1, indices)
+        msg = "indices of (non-)preferred solutions should be between 0 and {}. Current indices are {}.".format(
+            n_solutions - 1, indices
+        )
         raise ValidationError(msg)
 
 
-def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objectives: int) -> None:
+def validate_bounds(
+    dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objectives: int
+) -> None:
     """Validate the Decision maker's desired lower and upper bounds for objective values.
 
     Args:
@@ -119,10 +124,14 @@ def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objecti
     """
 
     if not isinstance(bounds, np.ndarray):
-        msg = "Please specify bounds as a numpy array. Current type: {}.".format(type(bounds))
+        msg = "Please specify bounds as a numpy array. Current type: {}.".format(
+            type(bounds)
+        )
         raise ValidationError(msg)
     if len(bounds) != n_objectives:
-        msg = "Length of 'bounds' ({}) must be the same as number of objectives ({}).".format(len(bounds), n_objectives)
+        msg = "Length of 'bounds' ({}) must be the same as number of objectives ({}).".format(
+            len(bounds), n_objectives
+        )
         raise ValidationError(msg)
     if not all(isinstance(b, (np.ndarray, list)) for b in bounds):
         print(type(bounds[0]))
@@ -137,26 +146,32 @@ def validate_bounds(dimensions_data: pd.DataFrame, bounds: np.ndarray, n_objecti
 
     # check that bounds are within ideal and nadir points for each objective
     for i, b in enumerate(bounds):
-        if dimensions_data.loc['minimize'].values.tolist()[i] == 1:  # minimized objectives
-            if dimensions_data.loc['ideal'].values.tolist()[i] is not None:
-                if b[0] < dimensions_data.loc['ideal'].values.tolist()[i]:
-                    msg = "Lower bound cannot be lower than ideal value for objective. Ideal vector: {}." \
-                        .format(dimensions_data.loc['ideal'].values.tolist())
+        if (
+            dimensions_data.loc["minimize"].values.tolist()[i] == 1
+        ):  # minimized objectives
+            if dimensions_data.loc["ideal"].values.tolist()[i] is not None:
+                if b[0] < dimensions_data.loc["ideal"].values.tolist()[i]:
+                    msg = "Lower bound cannot be lower than ideal value for objective. Ideal vector: {}.".format(
+                        dimensions_data.loc["ideal"].values.tolist()
+                    )
                     raise ValidationError(msg)
-            if dimensions_data.loc['nadir'].values.tolist()[i] is not None:
-                if b[1] > dimensions_data.loc['nadir'].values.tolist()[i]:
-                    msg = "Upper bound cannot be higher than nadir value for objective. Nadir vector: {}." \
-                        .format(dimensions_data.loc['nadir'].values.tolist())
+            if dimensions_data.loc["nadir"].values.tolist()[i] is not None:
+                if b[1] > dimensions_data.loc["nadir"].values.tolist()[i]:
+                    msg = "Upper bound cannot be higher than nadir value for objective. Nadir vector: {}.".format(
+                        dimensions_data.loc["nadir"].values.tolist()
+                    )
                     raise ValidationError(msg)
 
         else:  # maximized objectives:
-            if dimensions_data.loc['ideal'].values.tolist()[i] is not None:
-                if b[1] > dimensions_data.loc['ideal'].values.tolist()[i]:
-                    msg = "Upper bound cannot be higher than ideal value for objective. Ideal vector: {}." \
-                        .format(dimensions_data.loc['ideal'].values.tolist())
+            if dimensions_data.loc["ideal"].values.tolist()[i] is not None:
+                if b[1] > dimensions_data.loc["ideal"].values.tolist()[i]:
+                    msg = "Upper bound cannot be higher than ideal value for objective. Ideal vector: {}.".format(
+                        dimensions_data.loc["ideal"].values.tolist()
+                    )
                     raise ValidationError(msg)
-            if dimensions_data.loc['nadir'].values.tolist()[i] is not None:
-                if b[0] < dimensions_data.loc['nadir'].values.tolist()[i]:
-                    msg = "Lower bound cannot be lower than nadir value for objective. Nadir vector: {}." \
-                        .format(dimensions_data.loc['nadir'].values.tolist())
+            if dimensions_data.loc["nadir"].values.tolist()[i] is not None:
+                if b[0] < dimensions_data.loc["nadir"].values.tolist()[i]:
+                    msg = "Lower bound cannot be lower than nadir value for objective. Nadir vector: {}.".format(
+                        dimensions_data.loc["nadir"].values.tolist()
+                    )
                     raise ValidationError(msg)

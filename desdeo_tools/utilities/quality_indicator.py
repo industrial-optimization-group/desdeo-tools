@@ -1,4 +1,3 @@
-
 from numba import njit
 import numba
 import numpy as np
@@ -47,8 +46,13 @@ def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> l
     return eps_list
 
 
-
-def preference_indicator(s1: np.ndarray, s2: np.ndarray, min_asf_value: float, ref_point: np.ndarray, delta: float) -> float:
+def preference_indicator(
+    s1: np.ndarray,
+    s2: np.ndarray,
+    min_asf_value: float,
+    ref_point: np.ndarray,
+    delta: float,
+) -> float:
     """ Computes the preference-based quality indicator.
 
     Args:
@@ -80,15 +84,17 @@ def hypervolume_indicator(front: np.ndarray, reference_point: np.ndarray) -> flo
     Returns:
         float: Measures the volume of the objective space dominated by an approximation set.
     """
-    ref = np.asarray(reference_point, dtype='double') # hv.wfg needs datatype to be double
-    fr = np.asarray(front, dtype='double')
+    ref = np.asarray(
+        reference_point, dtype="double"
+    )  # hv.wfg needs datatype to be double
+    fr = np.asarray(front, dtype="double")
     return hv.wfg(fr, ref)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
-    po_front = np.asarray([[1.0,0],[0.5,0.5], [0,1.0], [2, -1], [0,0]])
-    sol1 = [4, 4] # cant be better than po front, min is zero
+    po_front = np.asarray([[1.0, 0], [0.5, 0.5], [0, 1.0], [2, -1], [0, 0]])
+    sol1 = [4, 4]  # cant be better than po front, min is zero
     sol = np.asarray(sol1)
     ref = np.asarray([0.7, 0.3])
 

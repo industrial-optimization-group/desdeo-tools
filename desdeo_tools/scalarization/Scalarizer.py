@@ -9,7 +9,11 @@ class Scalarizer:
     """
 
     def __init__(
-        self, evaluator: Callable, scalarizer: Callable, evaluator_args: Dict = None, scalarizer_args: Dict = None
+        self,
+        evaluator: Callable,
+        scalarizer: Callable,
+        evaluator_args: Dict = None,
+        scalarizer_args: Dict = None,
     ):
         """
         Args:
@@ -83,7 +87,9 @@ class DiscreteScalarizer:
 if __name__ == "__main__":
     vectors = np.array([[1, 1, 1], [2, 2, 2], [4, 5, 6.0]])
     vector = np.array([1, 2, 3])
-    dscalarizer = DiscreteScalarizer(lambda x, a=1: a * np.sum(x, axis=1), scalarizer_args={"a": 2})
+    dscalarizer = DiscreteScalarizer(
+        lambda x, a=1: a * np.sum(x, axis=1), scalarizer_args={"a": 2}
+    )
     res = dscalarizer(vectors)
     res_1d = dscalarizer(vector)
     print(res)

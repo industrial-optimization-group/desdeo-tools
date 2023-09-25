@@ -214,4 +214,3 @@ class IOPIS(PreferenceIncorporatedSpace):
 
     def update_preference(self, preference: dict):
         self.preferences = [preference] * self.num_scalarizers
-
