@@ -8,7 +8,7 @@ from desdeo_tools.scalarization import SimpleASF
 
 @njit()
 def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
-    """ Computes the additive epsilon-indicator between two solutions.
+    """Computes the additive epsilon-indicator between two solutions.
 
     Args:
         s1 (np.ndarray): Solution 1. Should be an one-dimensional array.
@@ -27,7 +27,7 @@ def epsilon_indicator(s1: np.ndarray, s2: np.ndarray) -> float:
 
 @njit()
 def epsilon_indicator_ndims(front: np.ndarray, reference_point: np.ndarray) -> list:
-    """ Computes the additive epsilon-indicator between reference point and current one-dimensional vector of front.
+    """Computes the additive epsilon-indicator between reference point and current one-dimensional vector of front.
 
     Args:
         front (np.ndarray): The front that the current reference point is being compared to.
@@ -53,19 +53,19 @@ def preference_indicator(
     ref_point: np.ndarray,
     delta: float,
 ) -> float:
-    """ Computes the preference-based quality indicator.
+    """Computes the preference-based quality indicator.
 
     Args:
         s1 (np.ndarray): Solution 1. Should be an one-dimensional array.
         s2 (np.ndarray): Solution 2. Should be an one-dimensional array.
         ref_point (np.ndarray): The reference point should be same shape as front.
         min_asf_value (float): Minimum value of achievement scalarization of the reference_front. Used in normalization.
-        delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther 
+        delta (float): The spesifity delta allows to set the amplification of the indicator to be closer or farther
             from the reference point. Smaller delta means that all solutions are in smaller range around the reference
             point.
 
     Returns:
-        float: The maximum distance between the values in s1 and s2 taking into account 
+        float: The maximum distance between the values in s1 and s2 taking into account
             the reference point and spesifity.
     """
     s2_asf = SimpleASF(np.ones_like(s2))
@@ -74,12 +74,13 @@ def preference_indicator(
 
 
 def hypervolume_indicator(front: np.ndarray, reference_point: np.ndarray) -> float:
-    """ Computes the hypervolume-indicator between reference front and current approximating point.
+    """Computes the hypervolume-indicator between reference front and current approximating point.
 
     Args:
-        front (np.ndarray): The front that is compared. Should be set of arrays, where the rows are the solutions and 
+        front (np.ndarray): The front that is compared. Should be set of arrays, where the rows are the solutions and
             the columns are the objective dimensions.
-        reference_point (np.ndarray): The reference point that the current front is being compared to. Should be 1D array.
+        reference_point (np.ndarray): The reference point that the current front is being compared to.
+        Should be 1D array.
 
     Returns:
         float: Measures the volume of the objective space dominated by an approximation set.
@@ -92,7 +93,6 @@ def hypervolume_indicator(front: np.ndarray, reference_point: np.ndarray) -> flo
 
 
 if __name__ == "__main__":
-
     po_front = np.asarray([[1.0, 0], [0.5, 0.5], [0, 1.0], [2, -1], [0, 0]])
     sol1 = [4, 4]  # cant be better than po front, min is zero
     sol = np.asarray(sol1)

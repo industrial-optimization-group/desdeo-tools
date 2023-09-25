@@ -385,7 +385,8 @@ class ReferencePointPreference(BaseRequest):
 
 
 class PreferredSolutionPreference(BaseRequest):
-    """Methods can use this class to ask the Decision maker to provide their preferences in form of preferred solution(s).
+    """Methods can use this class to ask the Decision maker to provide their preferences 
+    in form of preferred solution(s).
     """
 
     def __init__(

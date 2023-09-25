@@ -115,7 +115,8 @@ class PBI(MOEADSFBase):
         theta (float): A penalty parameter used by the function
 
     .. Q. Zhang and H. Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition,"
-       in IEEE Transactions on Evolutionary Computation, vol. 11, no. 6, pp. 712-731, Dec. 2007, doi: 10.1109/TEVC.2007.892759.
+        in IEEE Transactions on Evolutionary Computation, vol. 11, no. 6, pp. 712-731, Dec. 2007,
+        doi: 10.1109/TEVC.2007.892759.
     """
 
     def __init__(self, theta: float = 5):

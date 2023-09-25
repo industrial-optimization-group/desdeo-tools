@@ -7,7 +7,7 @@ from desdeo_tools.solver.ScalarSolver import (
     DiscreteMinimizer,
     DiscreteScalarizer,
     ScalarSolverException,
-    MixedIntegerMinimizer,
+    #MixedIntegerMinimizer,
 )
 from desdeo_tools.scalarization.ASF import PointMethodASF
 

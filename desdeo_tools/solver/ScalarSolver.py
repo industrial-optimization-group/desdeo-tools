@@ -23,8 +23,7 @@ class ScalarSolverException(Exception):
 
 
 class ScalarMethod:
-    """A class the define and implement methods for minimizing scalar valued functions.
-    """
+    """A class the define and implement methods for minimizing scalar valued functions."""
 
     def __init__(
         self, method: Callable, method_args=None, use_scipy: Optional[bool] = False
@@ -93,16 +92,15 @@ class ScalarMethod:
 class MixedIntegerMinimizer:
 
     """Implements methods for solving scalar valued functions.
-    
+
     Args:
-        scalarized_objective (Callable): The objective function that has been scalarized 
+        scalarized_objective (Callable): The objective function that has been scalarized
                                          and ready for minimization.
         problem (MOProblem): A MOProblem instance required to get variable types.
         minlp_solver_path (str): The path to the bonmin solver.
     """
 
     def __init__(self, scalarized_objective: Callable, problem, minlp_solver_path: str):
-
         # Try importing rbfopt
         try:
             global rbfopt
@@ -271,9 +269,7 @@ class ScalarMinimizer:
                 self._bounds[:, 1] -= 1e-6
 
     def get_presets(self):
-        """Return the list of preset minimizers available.
-
-        """
+        """Return the list of preset minimizers available."""
         return self.get_presets
 
     def minimize(self, x0: np.ndarray) -> Dict:
@@ -314,8 +310,7 @@ class ScalarMinimizer:
 
 
 class DiscreteMinimizer:
-    """Implements a class for finding the minimum value of a discrete of scalarized vectors.
-    """
+    """Implements a class for finding the minimum value of a discrete of scalarized vectors."""
 
     def __init__(
         self,
@@ -374,8 +369,6 @@ class DiscreteMinimizer:
 
 
 if __name__ == "__main__":
-    from desdeo_tools.scalarization.ASF import PointMethodASF
-
     ideal = np.array([0, 0, 0, 0])
     nadir = np.array([1, 1, 1, 1])
 

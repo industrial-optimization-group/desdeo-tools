@@ -2690,7 +2690,10 @@ files = [
     {file = "wrapt-1.15.0.tar.gz", hash = "sha256:d06730c6aed78cee4126234cf2d071e01b44b915e725a6cb439a879ec9754a3a"},
 ]
 
+[extras]
+mixed-integer-solver = []
+
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <3.12"
-content-hash = "b206ba2e19631bb4fd4821be92431ef788d59e1b0c001e0448374010a4a41a11"
+content-hash = "f420d42ae80f34f7115541fd2f50ff41ba3c3644cee4f0349a1538dbaf000d53"
