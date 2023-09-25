@@ -132,7 +132,7 @@ class MixedIntegerMinimizer:
 
     def create_settings(self, max_evaluations=25, nlp_solver_path="ipopt"):
         settings = rbfopt.RbfoptSettings(
-            #'/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'
+            # '/Users/seanjana/Desktop/Työt/project_codes/COIN_Bundle/coin.macos64.20211124/bonmin'
             max_evaluations=max_evaluations,
             global_search_method="solver",
             nlp_solver_path=nlp_solver_path,
@@ -153,7 +153,7 @@ class MixedIntegerMinimizer:
             var_lower=self.lower_bounds,
             var_upper=self.upper_bounds,
             var_type=self.var_types,
-            obj_funct=lambda x, **kwargs: scalarized_objectives(x, **kwargs)[0],
+            obj_funct=lambda x, **kwargs: self.scalarized_objective(x, **kwargs)[0],
         )
 
         null_stream = open(os.devnull, "w")

@@ -12,8 +12,7 @@ from desdeo_tools.utilities.frozen import FrozenClass
 
 
 class RequestError(Exception):
-    """Raised when an error related to the Request class is encountered.
-    """
+    """Raised when an error related to the Request class is encountered."""
 
 
 class BaseRequest(FrozenClass):
@@ -385,7 +384,7 @@ class ReferencePointPreference(BaseRequest):
 
 
 class PreferredSolutionPreference(BaseRequest):
-    """Methods can use this class to ask the Decision maker to provide their preferences 
+    """Methods can use this class to ask the Decision maker to provide their preferences
     in form of preferred solution(s).
     """
 
