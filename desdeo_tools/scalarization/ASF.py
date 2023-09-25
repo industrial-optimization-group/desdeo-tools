@@ -451,7 +451,6 @@ class STEM(ASFBase):
 
         nad = self.nadir
         uto = self.ideal - self.rho
-        phi = np.zeros((objective_vectors.ndim,))
         e = abs(nad-uto)/np.max((nad, uto), axis=0)      
         
         max_term = np.array([(e/e.sum() * (f - uto)).max()])
