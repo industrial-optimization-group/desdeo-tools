@@ -79,9 +79,7 @@ def simplexLatticeDesign(num_dimensions: int, lattice_resolution: int) -> np.nda
     """
 
     number_of_vectors = comb(
-        lattice_resolution + num_dimensions - 1,
-        num_dimensions - 1,
-        exact=True,
+        lattice_resolution + num_dimensions - 1, num_dimensions - 1, exact=True
     )
 
     temp1 = range(1, num_dimensions + lattice_resolution)
@@ -122,9 +120,7 @@ def simplexLatticefromNumPoints(
     while True:
         temp_lattice_resolution += 1
         number_of_vectors = comb(
-            temp_lattice_resolution + num_dimensions - 1,
-            num_dimensions - 1,
-            exact=True,
+            temp_lattice_resolution + num_dimensions - 1, num_dimensions - 1, exact=True
         )
         if number_of_vectors > num_points:
             break

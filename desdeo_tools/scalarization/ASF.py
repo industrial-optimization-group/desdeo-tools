@@ -386,7 +386,7 @@ class GuessASF(ASFBase):
 
         return max_term
 
-    
+
 class AspResASF(ASFBase):
     """Implementation of an ASF using both aspiration and reservation levels.
        directly consider both upper and lower bounds of the preferred ranges within the solution 
@@ -413,8 +413,15 @@ class AspResASF(ASFBase):
         6th International Conference’, Proceedings, Springer-Verlag, Berlin, Heidelberg, 2011, pp. 212–225.
     """
 
-    def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6,
-                alpha: float = 1e-1, beta: float = 1e-1,):
+    def __init__(
+        self,
+        nadir: np.ndarray,
+        ideal: np.ndarray,
+        rho: float = 1e-6,
+        rho_sum: float = 1e-6,
+        alpha: float = 1e-1,
+        beta: float = 1e-1,
+    ):
         self.nadir = nadir
         self.ideal = ideal
         self.rho = rho
@@ -422,7 +429,12 @@ class AspResASF(ASFBase):
         self.alpha = alpha
         self.beta = beta
 
-    def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray, reservation_point: np.ndarray):
+    def __call__(
+        self,
+        objective_vectors: np.ndarray,
+        reference_point: np.ndarray,
+        reservation_point: np.ndarray,
+    ):
         # assure this function works with single objective vectors
         if objective_vectors.ndim == 1:
             f = objective_vectors.reshape((1, -1))
@@ -435,24 +447,23 @@ class AspResASF(ASFBase):
         ide = self.ideal
         uto = self.ideal - self.rho
         phi = np.zeros((objective_vectors.ndim,))
-        
+
         for i in range(objective_vectors.ndim):
             if ide[i] <= f[0][i] <= z[i]:
-                phi[i] = -1 + self.alpha * (1/(z-uto))[i] * (f[0][i] - z[i])
-            
+                phi[i] = -1 + self.alpha * (1 / (z - uto))[i] * (f[0][i] - z[i])
+
             if z[i] <= f[0][i] <= r[i]:
-                phi[i] = (1/(r-z))[i] * (f[0][i] - r[i])
-            
+                phi[i] = (1 / (r - z))[i] * (f[0][i] - r[i])
+
             if r[i] <= f[0][i] <= nad[i]:
-                phi[i] = self.beta * (1/(nad-r))[i] * (f[0][i] - r[i])
-        
-        
+                phi[i] = self.beta * (1 / (nad - r))[i] * (f[0][i] - r[i])
+
         max_term = np.array([np.max(phi)])
         sum_term = np.array([self.rho_sum * np.sum(phi)])
 
         return max_term + sum_term
 
-    
+
 class STEM(ASFBase):
     """Implementation of the Step Method (STEM).
     
@@ -482,9 +493,10 @@ class STEM(ASFBase):
 
         nad = self.nadir
         uto = self.ideal - self.rho
+        # TODO: #50 Fix the following line
         phi = np.zeros((objective_vectors.ndim,))
-        e = abs(nad-uto)/np.max((nad, uto), axis=0)      
-        
-        max_term = np.array([(e/e.sum() * (f - uto)).max()])
+        e = abs(nad - uto) / np.max((nad, uto), axis=0)
 
-        return max_term 
+        max_term = np.array([(e / e.sum() * (f - uto)).max()])
+
+        return max_term
