@@ -385,3 +385,106 @@ class GuessASF(ASFBase):
         max_term = np.max((f - nad) / (nad - z), axis=1)
 
         return max_term
+
+    
+class AspResASF(ASFBase):
+    """Implementation of an ASF using both aspiration and reservation levels.
+       directly consider both upper and lower bounds of the preferred ranges within the solution 
+       generation process, the variant of ASF utilizing both aspirations and reservations levels. 
+       Originally proposed by Wierzbicki (1986), and also used in the PIE method (Sindhya et al. (2011)).
+    
+    Args:
+        nadir (np.ndarray): The nadir point.
+        ideal (np.ndarray): The ideal point.
+        rho  A small number to form the utopian point.
+        rho_sum (float): A small number to be used as a weight for the sum term.
+        alpha (float): An extricly positive number.
+        beta(float): An extricly positive number.
+    
+    References:
+        Wierzbicki, A. P.
+        On the completeness and constructiveness of parametric characterizations to vector optimization 
+        problems, 
+        OR Spektrum, 1986, 8(2), 73–87.
+        
+        Sindhya, K., Ruiz, A. B. and Miettinen, K.
+        A preference based interactive evolutionary algorithm for multi-objective optimization: PIE
+        in H. Takahashi, K. Deb, E. Wanner and S. Greco, eds, ‘Evolutionary Multi-Criterion Optimization: 
+        6th International Conference’, Proceedings, Springer-Verlag, Berlin, Heidelberg, 2011, pp. 212–225.
+    """
+
+    def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6, rho_sum: float = 1e-6,
+                alpha: float = 1e-1, beta: float = 1e-1,):
+        self.nadir = nadir
+        self.ideal = ideal
+        self.rho = rho
+        self.rho_sum = rho_sum
+        self.alpha = alpha
+        self.beta = beta
+
+    def __call__(self, objective_vectors: np.ndarray, reference_point: np.ndarray, reservation_point: np.ndarray):
+        # assure this function works with single objective vectors
+        if objective_vectors.ndim == 1:
+            f = objective_vectors.reshape((1, -1))
+        else:
+            f = objective_vectors
+
+        z = reference_point
+        r = reservation_point - self.rho
+        nad = self.nadir
+        ide = self.ideal
+        uto = self.ideal - self.rho
+        phi = np.zeros((objective_vectors.ndim,))
+        
+        for i in range(objective_vectors.ndim):
+            if ide[i] <= f[0][i] <= z[i]:
+                phi[i] = -1 + self.alpha * (1/(z-uto))[i] * (f[0][i] - z[i])
+            
+            if z[i] <= f[0][i] <= r[i]:
+                phi[i] = (1/(r-z))[i] * (f[0][i] - r[i])
+            
+            if r[i] <= f[0][i] <= nad[i]:
+                phi[i] = self.beta * (1/(nad-r))[i] * (f[0][i] - r[i])
+        
+        
+        max_term = np.array([np.max(phi)])
+        sum_term = np.array([self.rho_sum * np.sum(phi)])
+
+        return max_term + sum_term
+
+    
+class STEM(ASFBase):
+    """Implementation of the Step Method (STEM).
+    
+    Args:
+        nadir (np.ndarray): The nadir point.
+        ideal (np.ndarray): The ideal point.
+        rho  A small number to form the utopian point.
+        
+    References:
+        Benayoun, R., De Montgolﬁer, J., Tergny, J. and Laritchev, O.
+        Linear programming with multiple objective functions: Step method (STEM)’, 
+        Mathematical programming, 1971, 1(1), 366–375.
+
+    """
+
+    def __init__(self, nadir: np.ndarray, ideal: np.ndarray, rho: float = 1e-6):
+        self.nadir = nadir
+        self.ideal = ideal
+        self.rho = rho
+
+    def __call__(self, objective_vectors: np.ndarray):
+        # assure this function works with single objective vectors
+        if objective_vectors.ndim == 1:
+            f = objective_vectors.reshape((1, -1))
+        else:
+            f = objective_vectors
+
+        nad = self.nadir
+        uto = self.ideal - self.rho
+        phi = np.zeros((objective_vectors.ndim,))
+        e = abs(nad-uto)/np.max((nad, uto), axis=0)      
+        
+        max_term = np.array([(e/e.sum() * (f - uto)).max()])
+
+        return max_term 
