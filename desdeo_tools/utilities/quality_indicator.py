@@ -3,7 +3,6 @@ import numba
 import numpy as np
 import hvwfg as hv
 from desdeo_tools.utilities.fast_non_dominated_sorting import dominates, fast_non_dominated_sort_indices
-from desdeo_tools.utilities.quality_indicator import hypervolume_indicator
 
 from desdeo_tools.scalarization import SimpleASF
 
@@ -138,7 +137,7 @@ class phi():
         if all_phv == 0:
             return 0, 0, 0
         else:
-            return 1 + (pos_phv / max_phv), (pos_phv + rp_phv) / max_phv, neg_phv / max_phv, rp_phv / max_phv
+            return 1 + (pos_phv / all_phv), (pos_phv + rp_phv) / max_phv, neg_phv / max_phv, rp_phv / max_phv
 
     def RP_nondom_cal(self, set_of_s, RP, nadir):
         """Calculate various hypervolume metrics when RP is not dominated."""
