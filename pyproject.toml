@@ -20,7 +20,7 @@ mixed-integer-solver = ["rbfopt"]
 ruff = "^0.0.291"
 flake8 = "^3.7"
 pylint = "^2.4"
-black = {version = "^18.3-alpha.0", allow-prereleases = true}
+black = {version = ">=18.3,<27.0", allow-prereleases = true}
 # jupyter = "^1.0"
 matplotlib = "^3.2.1"
 pytest = ">=6.2.5"
